@@ -16,25 +16,55 @@
         .input-group { position: relative; margin-bottom: 25px; text-align: left; }
         .input-group i { position: absolute; top: 50%; transform: translateY(-50%); left: 15px; color: #888; }
         .input-group input { width: 100%; padding: 15px 15px 15px 45px; background: rgba(0, 0, 0, 0.5); border: 1px solid #333; border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: 0.3s; }
-        .input-group input:focus { border-color: var(--accent-blue); box-shadow: 0 0 10px rgba(0, 234, 255, 0.2); }
+        .input-group input:focus { border-color: var(--accent-blue); }
         .login-btn { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--accent-blue); color: var(--accent-blue); font-size: 1rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-        .login-btn:hover { background: var(--accent-blue); color: #000; box-shadow: 0 0 20px rgba(0, 234, 255, 0.4); }
+        .login-btn:hover { background: var(--accent-blue); color: #000; }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="logo-text">Ferri<span>Tech</span></div>
-        <form onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+        <form id="loginForm">
             <div class="input-group">
                 <i class="fas fa-user"></i>
-                <input type="text" placeholder="Utilizador Admin" required>
+                <input type="text" id="user" placeholder="Usuário Admin" required>
             </div>
             <div class="input-group">
                 <i class="fas fa-lock"></i>
-                <input type="password" placeholder="Palavra-passe" required>
+                <input type="password" id="pass" placeholder="Senha" required>
             </div>
             <button type="submit" class="login-btn">Entrar no Painel</button>
         </form>
     </div>
+
+    <script>
+        const API_URL = 'https://ferritech-api.onrender.com';
+
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('user').value;
+            const password = document.getElementById('pass').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Salva uma pequena marca de que você logou (opcional)
+                    sessionStorage.setItem('isAdmin', 'true');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert("Erro ao conectar com o servidor.");
+            }
+        };
+    </script>
 </body>
 </html>
