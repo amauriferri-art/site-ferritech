@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin | FerriTech</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0a0a0a; --bg-panel: #141414; --accent-blue: #00eaff; --text-main: #ffffff; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Montserrat', sans-serif; }
+        body { background: var(--bg-dark); color: white; display:flex; height:100vh; overflow:hidden; }
+        
+        .sidebar { width: 260px; background: var(--bg-panel); border-right: 1px solid #222; padding: 30px; text-align:center; display: flex; flex-direction: column; }
+        .sidebar a { color: #888; text-decoration: none; padding: 15px; margin-top: 20px; border-radius: 8px; transition: 0.3s; display: block; text-align: left; }
+        .sidebar a:hover { background: rgba(0, 234, 255, 0.1); color: var(--accent-blue); }
+        .sidebar .logout { margin-top: auto; color: #ff4444; }
+        .sidebar .logout:hover { background: rgba(255, 68, 68, 0.1); }
+        
+        .main { flex:1; padding:40px; overflow-y:auto; }
+        .card { background: var(--bg-panel); border: 1px solid #222; border-radius: 12px; padding: 30px; max-width: 600px; margin: 0 auto; }
+        
+        label { display:block; margin-bottom:8px; color:#888; font-size:0.9rem; font-weight: 600; }
+        input { width:100%; padding:14px; margin-bottom:20px; background:#000; border:1px solid #333; color:white; border-radius:6px; outline:none; transition: 0.3s; }
+        input:focus { border-color: var(--accent-blue); }
+        
+        button { width:100%; padding:16px; background: var(--accent-blue); color:black; font-weight:800; border:none; border-radius:8px; cursor:pointer; text-transform:uppercase; transition: 0.3s; font-size: 1rem; }
+        button:hover { box-shadow: 0 0 20px rgba(0, 234, 255, 0.4); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <h2 style="font-weight:800">Ferri<span style="color:var(--accent-blue)">Tech</span></h2>
+        <p style="font-size:0.8rem; color:#555; margin-top:5px">Painel de Controle</p>
+        
+        <a href="#" style="background: rgba(0, 234, 255, 0.1); color: var(--accent-blue);"><i class="fas fa-box"></i> Novo Produto</a>
+        <a href="login.html" class="logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
+    </aside>
+    <main class="main">
+        <div class="card">
+            <h2 style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:10px; color: var(--accent-blue);">Cadastrar Hardware</h2>
+            <form id="prodForm">
+                <label>Nome do Produto</label>
+                <input type="text" id="nome" placeholder="Ex: RTX 4060 Ti 8GB" required>
+                
+                <label>Preço (R$)</label>
+                <input type="number" step="0.01" id="preco" placeholder="Ex: 2499.90" required>
+                
+                <label>Quantidade em Estoque</label>
+                <input type="number" id="estoque" placeholder="Ex: 10" required>
+                
+                <label>URL da Foto do Produto</label>
+                <input type="url" id="imagem" placeholder="https://..." required>
+                
+                <button type="submit" id="submitBtn"><i class="fas fa-upload"></i> PUBLICAR NO SITE OFICIAL</button>
+            </form>
+        </div>
+    </main>
+    <script>
+        // API DO RENDER CONFIGURADA AQUI:
+        const API_BASE_URL = 'https://ferritech-api.onrender.com';
+
+        document.getElementById('prodForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
+            btn.disabled = true;
+
+            const payload = {
+                name: document.getElementById('nome').value,
+                price: parseFloat(document.getElementById('preco').value),
+                stock: parseInt(document.getElementById('estoque').value),
+                image: document.getElementById('imagem').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/produtos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("🚀 MÁQUINA! O hardware já está disponível na vitrine.");
+                    e.target.reset();
+                } else {
+                    alert("Erro ao cadastrar. Verifique os dados.");
+                }
+            } catch (err) {
+                alert("Erro de conexão com o servidor na nuvem.");
+            } finally {
+                btn.innerHTML = '<i class="fas fa-upload"></i> PUBLICAR NO SITE OFICIAL';
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
