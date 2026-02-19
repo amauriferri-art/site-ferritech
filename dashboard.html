@@ -12,64 +12,140 @@
         body { background: var(--bg-dark); color: white; display:flex; height:100vh; overflow:hidden; }
         
         .sidebar { width: 260px; background: var(--bg-panel); border-right: 1px solid #222; padding: 30px; text-align:center; display: flex; flex-direction: column; }
-        .sidebar a { color: #888; text-decoration: none; padding: 15px; margin-top: 20px; border-radius: 8px; transition: 0.3s; display: block; text-align: left; }
+        .sidebar a { color: #888; text-decoration: none; padding: 15px; margin-top: 10px; border-radius: 8px; transition: 0.3s; display: block; text-align: left; }
         .sidebar a:hover { background: rgba(0, 234, 255, 0.1); color: var(--accent-blue); }
         .sidebar .logout { margin-top: auto; color: #ff4444; }
         .sidebar .logout:hover { background: rgba(255, 68, 68, 0.1); }
         
         .main { flex:1; padding:40px; overflow-y:auto; }
-        .card { background: var(--bg-panel); border: 1px solid #222; border-radius: 12px; padding: 30px; max-width: 600px; margin: 0 auto; }
+        .card { background: var(--bg-panel); border: 1px solid #222; border-radius: 12px; padding: 30px; margin-bottom: 30px; }
         
         label { display:block; margin-bottom:8px; color:#888; font-size:0.9rem; font-weight: 600; }
-        input { width:100%; padding:14px; margin-bottom:20px; background:#000; border:1px solid #333; color:white; border-radius:6px; outline:none; transition: 0.3s; }
+        input { width:100%; padding:12px; margin-bottom:15px; background:#000; border:1px solid #333; color:white; border-radius:6px; outline:none; transition: 0.3s; }
         input:focus { border-color: var(--accent-blue); }
         
-        button { width:100%; padding:16px; background: var(--accent-blue); color:black; font-weight:800; border:none; border-radius:8px; cursor:pointer; text-transform:uppercase; transition: 0.3s; font-size: 1rem; }
-        button:hover { box-shadow: 0 0 20px rgba(0, 234, 255, 0.4); transform: translateY(-2px); }
+        .media-group { border: 1px dashed #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        
+        button { width:100%; padding:16px; background: var(--accent-blue); color:black; font-weight:800; border:none; border-radius:8px; cursor:pointer; text-transform:uppercase; transition: 0.3s; }
+        button:hover { box-shadow: 0 0 20px rgba(0, 234, 255, 0.4); }
+
+        /* Estilos da lista de produtos */
+        .product-list-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 15px; border: 1px solid #333; border-radius: 8px; margin-bottom: 10px; }
+        .delete-btn { width: auto; padding: 10px 15px; background: transparent; color: #ff4444; border: 1px solid #ff4444; }
+        .delete-btn:hover { background: #ff4444; color: white; box-shadow: none; }
     </style>
 </head>
 <body>
     <aside class="sidebar">
         <h2 style="font-weight:800">Ferri<span style="color:var(--accent-blue)">Tech</span></h2>
-        <p style="font-size:0.8rem; color:#555; margin-top:5px">Painel de Controlo</p>
-        
-        <a href="#" style="background: rgba(0, 234, 255, 0.1); color: var(--accent-blue);"><i class="fas fa-box"></i> Novo Produto</a>
+        <p style="font-size:0.8rem; color:#555; margin-top:5px">Painel de Controle</p>
+        <a href="#" style="background: rgba(0, 234, 255, 0.1); color: var(--accent-blue);"><i class="fas fa-box"></i> Gerenciar Estoque</a>
+        <a href="index.html"><i class="fas fa-store"></i> Ver Loja</a>
         <a href="login.html" class="logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
     </aside>
+    
     <main class="main">
-        <div class="card">
-            <h2 style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:10px; color: var(--accent-blue);">Registar Hardware</h2>
+        <div class="card" style="max-width: 800px; margin: 0 auto 30px;">
+            <h2 style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:10px; color: var(--accent-blue);">Cadastrar Novo Anúncio</h2>
             <form id="prodForm">
                 <label>Nome do Produto</label>
                 <input type="text" id="nome" placeholder="Ex: RTX 4060 Ti 8GB" required>
                 
-                <label>Preço (R$)</label>
-                <input type="number" step="0.01" id="preco" placeholder="Ex: 2499.90" required>
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label>Preço (R$)</label>
+                        <input type="number" step="0.01" id="preco" placeholder="Ex: 2499.90" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Estoque</label>
+                        <input type="number" id="estoque" placeholder="Ex: 10" required>
+                    </div>
+                </div>
                 
-                <label>Quantidade em Estoque</label>
-                <input type="number" id="estoque" placeholder="Ex: 10" required>
-                
-                <label>URL da Foto do Produto</label>
-                <input type="url" id="imagem" placeholder="https://..." required>
+                <div class="media-group">
+                    <label style="color: var(--accent-blue);"><i class="fas fa-photo-video"></i> Mídias do Produto (Insira URLs de fotos ou vídeos)</label>
+                    <input type="url" class="media-input" placeholder="Mídia 1 (Obrigatória - Capa do anúncio)" required>
+                    <input type="url" class="media-input" placeholder="Mídia 2 (Opcional)">
+                    <input type="url" class="media-input" placeholder="Mídia 3 (Opcional)">
+                    <input type="url" class="media-input" placeholder="Mídia 4 (Opcional)">
+                    <input type="url" class="media-input" placeholder="Mídia 5 (Opcional)">
+                </div>
                 
                 <button type="submit" id="submitBtn"><i class="fas fa-upload"></i> PUBLICAR NO SITE OFICIAL</button>
             </form>
         </div>
+
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <h2 style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:10px;">Anúncios Ativos</h2>
+            <div id="active-products">
+                <p style="color: #888;">Carregando anúncios...</p>
+            </div>
+        </div>
     </main>
+
     <script>
         const API_BASE_URL = 'https://ferritech-api.onrender.com';
 
+        // Função para carregar os produtos na tela do admin
+        async function loadAdminProducts() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/produtos`);
+                const produtos = await res.json();
+                const container = document.getElementById('active-products');
+                
+                if(produtos.length === 0) {
+                    container.innerHTML = '<p style="color: #888;">Nenhum produto cadastrado.</p>';
+                    return;
+                }
+
+                container.innerHTML = produtos.map(p => `
+                    <div class="product-list-item">
+                        <div>
+                            <strong style="display: block; margin-bottom: 5px;">${p.name}</strong>
+                            <span style="color: var(--accent-blue);">R$ ${p.price.toLocaleString('pt-BR')}</span> | Estoque: ${p.stock}
+                        </div>
+                        <button class="delete-btn" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i> Excluir</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Erro ao carregar lista de produtos.");
+            }
+        }
+
+        // Função para deletar produto
+        async function deleteProduct(id) {
+            if(!confirm("Tem certeza que deseja excluir este anúncio?")) return;
+            
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, { method: 'DELETE' });
+                if(res.ok) {
+                    alert("Anúncio removido!");
+                    loadAdminProducts(); // Recarrega a lista
+                }
+            } catch (err) {
+                alert("Erro ao tentar excluir.");
+            }
+        }
+
+        // Função para cadastrar produto
         document.getElementById('prodForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A ENVIAR...';
             btn.disabled = true;
 
+            // Pega todas as URLs preenchidas nos inputs de mídia
+            const mediaInputs = document.querySelectorAll('.media-input');
+            const mediaArray = [];
+            mediaInputs.forEach(input => {
+                if(input.value.trim() !== "") mediaArray.push(input.value);
+            });
+
             const payload = {
                 name: document.getElementById('nome').value,
                 price: parseFloat(document.getElementById('preco').value),
                 stock: parseInt(document.getElementById('estoque').value),
-                image: document.getElementById('imagem').value
+                media: mediaArray // Envia a lista de mídias para o servidor
             };
 
             try {
@@ -80,10 +156,11 @@
                 });
 
                 if (res.ok) {
-                    alert("🚀 MÁQUINA! O hardware já está disponível na vitrine.");
+                    alert("🚀 MÁQUINA! Anúncio publicado.");
                     e.target.reset();
+                    loadAdminProducts(); // Recarrega a lista para mostrar o novo
                 } else {
-                    alert("Erro ao registar. Verifique os dados.");
+                    alert("Erro ao registrar.");
                 }
             } catch (err) {
                 alert("Erro de conexão com o servidor na nuvem.");
@@ -92,6 +169,9 @@
                 btn.disabled = false;
             }
         };
+
+        // Carrega a lista ao abrir a página
+        loadAdminProducts();
     </script>
 </body>
 </html>
