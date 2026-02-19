@@ -31,14 +31,14 @@
 <body>
     <aside class="sidebar">
         <h2 style="font-weight:800">Ferri<span style="color:var(--accent-blue)">Tech</span></h2>
-        <p style="font-size:0.8rem; color:#555; margin-top:5px">Painel de Controle</p>
+        <p style="font-size:0.8rem; color:#555; margin-top:5px">Painel de Controlo</p>
         
         <a href="#" style="background: rgba(0, 234, 255, 0.1); color: var(--accent-blue);"><i class="fas fa-box"></i> Novo Produto</a>
         <a href="login.html" class="logout"><i class="fas fa-sign-out-alt"></i> Sair</a>
     </aside>
     <main class="main">
         <div class="card">
-            <h2 style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:10px; color: var(--accent-blue);">Cadastrar Hardware</h2>
+            <h2 style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:10px; color: var(--accent-blue);">Registar Hardware</h2>
             <form id="prodForm">
                 <label>Nome do Produto</label>
                 <input type="text" id="nome" placeholder="Ex: RTX 4060 Ti 8GB" required>
@@ -57,13 +57,12 @@
         </div>
     </main>
     <script>
-        // API DO RENDER CONFIGURADA AQUI:
         const API_BASE_URL = 'https://ferritech-api.onrender.com';
 
         document.getElementById('prodForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A ENVIAR...';
             btn.disabled = true;
 
             const payload = {
@@ -84,7 +83,7 @@
                     alert("🚀 MÁQUINA! O hardware já está disponível na vitrine.");
                     e.target.reset();
                 } else {
-                    alert("Erro ao cadastrar. Verifique os dados.");
+                    alert("Erro ao registar. Verifique os dados.");
                 }
             } catch (err) {
                 alert("Erro de conexão com o servidor na nuvem.");
