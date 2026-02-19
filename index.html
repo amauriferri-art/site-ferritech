@@ -53,11 +53,12 @@
         .hero span { color: var(--accent-blue); }
 
         .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; padding: 40px 5%; max-width: 1400px; margin: 0 auto; }
-        .product-card { background: var(--bg-card); border: 1px solid #2a2a2a; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s; }
+        .product-card { background: var(--bg-card); border: 1px solid #2a2a2a; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s; position: relative; }
         .product-card:hover { border-color: var(--accent-blue); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 234, 255, 0.15); }
         
-        .product-img-container { height: 220px; background: #fff; padding: 20px; display: flex; align-items: center; justify-content: center; }
-        .product-img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .product-img-container { height: 220px; background: #fff; padding: 20px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .product-img-container img, .product-img-container video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .media-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
 
         .product-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .product-title { font-size: 1rem; font-weight: 600; margin-bottom: 15px; color: #ddd; }
@@ -76,7 +77,9 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(3px); z-index: 900; opacity: 0; visibility: hidden; transition: 0.3s; }
         .overlay.active { opacity: 1; visibility: visible; }
         
-        footer { padding: 40px; text-align: center; border-top: 1px solid #222; color: #555; font-size: 0.85rem; }
+        footer { padding: 40px; text-align: center; border-top: 1px solid #222; color: #555; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        .admin-link { color: #444; text-decoration: none; font-size: 0.8rem; transition: 0.3s; }
+        .admin-link:hover { color: var(--accent-blue); }
     </style>
 </head>
 <body>
@@ -120,6 +123,7 @@
 
     <footer>
         <p>&copy; 2026 FerriTech. Todos os direitos reservados.</p>
+        <a href="login.html" class="admin-link"><i class="fas fa-lock"></i> Acesso Admin</a>
     </footer>
 
     <script>
@@ -134,23 +138,38 @@
                 products = await res.json();
                 renderizarProdutos();
             } catch (error) {
-                console.error("Erro ao carregar produtos:", error);
                 document.getElementById('products-container').innerHTML = `<p style="grid-column: 1/-1; text-align:center">Erro ao carregar produtos. Tente novamente mais tarde.</p>`;
             }
         }
 
         function renderizarProdutos() {
             const container = document.getElementById('products-container');
-            container.innerHTML = products.map(p => `
+            container.innerHTML = products.map(p => {
+                // Pega a primeira mídia do array (seja foto ou vídeo)
+                const mainMedia = p.media && p.media.length > 0 ? p.media[0] : 'https://via.placeholder.com/300?text=Sem+Foto';
+                const mediaCount = p.media ? p.media.length : 0;
+                const isVideo = mainMedia.match(/\.(mp4|webm|ogg)$/i); // Checa se a URL termina com extensão de vídeo
+                
+                let mediaElement = isVideo 
+                    ? `<video src="${mainMedia}" autoplay muted loop style="max-width: 100%; max-height: 100%;"></video>` 
+                    : `<img src="${mainMedia}" alt="${p.name}">`;
+
+                let badge = mediaCount > 1 ? `<div class="media-badge"><i class="fas fa-images"></i> +${mediaCount - 1}</div>` : '';
+
+                return `
                 <div class="product-card">
-                    <div class="product-img-container"><img src="${p.image}" alt="${p.name}"></div>
+                    <div class="product-img-container">
+                        ${mediaElement}
+                        ${badge}
+                    </div>
                     <div class="product-info">
                         <h3 class="product-title">${p.name}</h3>
                         <div class="price">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
                         <button class="add-btn" onclick="addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Comprar</button>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function addToCart(id) {
@@ -199,9 +218,9 @@
 
         function checkoutWhatsApp() {
             if (cart.length === 0) return alert("Carrinho vazio!");
-            const itens = cart.map(i => `✅ ${i.name}`).join('\\n');
+            const itens = cart.map(i => `✅ ${i.name}`).join('\n');
             const total = document.getElementById('cart-total').innerText;
-            const msg = encodeURIComponent(`*NOVO PEDIDO FERRITECH*\\n\\n${itens}\\n\\n*TOTAL: ${total}*\\n\\n_Fico a aguardar o PIX para confirmar a compra!_`);
+            const msg = encodeURIComponent(`*NOVO PEDIDO FERRITECH*\n\n${itens}\n\n*TOTAL: ${total}*\n\n_Fico a aguardar o PIX para confirmar a compra!_`);
             window.open(`https://wa.me/5527995809348?text=${msg}`, '_blank');
         }
 
