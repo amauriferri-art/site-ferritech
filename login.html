@@ -38,30 +38,17 @@
     </div>
 
     <script>
-        const API_URL = 'https://ferritech-api.onrender.com';
-
-        document.getElementById('loginForm').onsubmit = async (e) => {
+        document.getElementById('loginForm').onsubmit = (e) => {
             e.preventDefault();
-            const username = document.getElementById('user').value;
-            const password = document.getElementById('pass').value;
+            const user = document.getElementById('user').value;
+            const pass = document.getElementById('pass').value;
 
-            try {
-                const response = await fetch(`${API_URL}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    sessionStorage.setItem('isAdmin', 'true');
-                    window.location.href = 'dashboard.html';
-                } else {
-                    alert(data.message);
-                }
-            } catch (err) {
-                alert("Erro ao conectar com o servidor.");
+            // Verificação de usuário e senha
+            if (user === 'amauri123' && pass === 'matenco123') {
+                sessionStorage.setItem('isAdmin', 'true'); // Cria o crachá de acesso
+                window.location.href = 'dashboard.html'; // Manda para o painel
+            } else {
+                alert("Usuário ou senha incorretos, meu consagrado!");
             }
         };
     </script>
