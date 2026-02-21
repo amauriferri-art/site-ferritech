@@ -187,7 +187,7 @@
 
     <footer>
         <p>&copy; 2026 FerriTech. Todos os direitos reservados.</p>
-        <a href="login.html" class="admin-link"><i class="fas fa-lock"></i> Acesso Admin</a>
+        <a href="dashboard.html" class="admin-link"><i class="fas fa-lock"></i> Acesso Admin</a>
     </footer>
 
     <script>
@@ -215,12 +215,13 @@
             container.innerHTML = products.map(p => {
                 const mainMedia = p.media && p.media.length > 0 ? p.media[0] : 'https://via.placeholder.com/300?text=Sem+Foto';
                 const mediaCount = p.media ? p.media.length : 0;
-                const isVideo = mainMedia.match(/\.(mp4|webm|ogg)$/i);
                 
-                // Playsinline adicionado para garantir autoplay no celular e pointer-events para o clique funcionar na div
+                // Melhoria na detecção de vídeo
+                const isVideo = mainMedia.match(/\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video');
+                
                 let mediaElement = isVideo 
-                    ? `<video src="${mainMedia}" autoplay muted loop playsinline style="max-width: 100%; max-height: 100%; pointer-events: none;"></video>` 
-                    : `<img src="${mainMedia}" alt="${p.name}">`;
+                    ? `<video src="${mainMedia}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;"></video>` 
+                    : `<img src="${mainMedia}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
 
                 let badge = mediaCount > 1 ? `<div class="media-badge"><i class="fas fa-images"></i> +${mediaCount - 1}</div>` : '';
 
@@ -268,11 +269,11 @@
 
         function atualizarGaleriaVisual() {
             const mediaUrl = produtoAtualMedia[midiaAtualIndex];
-            const isVideo = mediaUrl.match(/\.(mp4|webm|ogg)$/i);
+            const isVideo = mediaUrl.match(/\.(mp4|webm|ogg|mov)/i) || mediaUrl.includes('video');
             const container = document.getElementById('gallery-content');
             
             if (isVideo) {
-                container.innerHTML = `<video src="${mediaUrl}" autoplay controls playsinline style="max-width: 100%; max-height: 80vh;"></video>`;
+                container.innerHTML = `<video src="${mediaUrl}" autoplay controls playsinline style="max-width: 100%; max-height: 80vh; border-radius: 8px;"></video>`;
             } else {
                 container.innerHTML = `<img src="${mediaUrl}" alt="Mídia do Produto">`;
             }
