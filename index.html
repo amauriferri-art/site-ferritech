@@ -56,10 +56,12 @@
         .product-card { background: var(--bg-card); border: 1px solid #2a2a2a; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s; position: relative; }
         .product-card:hover { border-color: var(--accent-blue); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 234, 255, 0.15); }
         
-        .product-img-container { height: 220px; background: #fff; padding: 20px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; }
-        .product-img-container img, .product-img-container video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        /* Ajuste do container para vídeos e imagens ocuparem 100% e sumir o fundo branco */
+        .product-img-container { height: 220px; background: #0a0a0a; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; }
+        .product-img-container img, .product-img-container video, .product-img-container iframe { width: 100%; height: 100%; object-fit: cover; border: none; }
+        
         .media-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; z-index: 10; }
-        .play-icon { position: absolute; font-size: 3rem; color: rgba(255,255,255,0.8); text-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none; }
+        .play-icon { position: absolute; font-size: 3rem; color: rgba(255,255,255,0.8); text-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none; z-index: 5; }
 
         .product-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .product-title { font-size: 1rem; font-weight: 600; margin-bottom: 15px; color: #ddd; }
@@ -81,7 +83,7 @@
         /* Galeria */
         .gallery-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
         .gallery-content { width: 90%; max-width: 1000px; height: 80vh; display: flex; justify-content: center; align-items: center; position: relative; }
-        .gallery-content img, .gallery-content video { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 0 20px var(--accent-blue-dim); }
+        .gallery-content img, .gallery-content video, .gallery-content iframe { width: 100%; height: 100%; border-radius: 8px; box-shadow: 0 0 20px var(--accent-blue-dim); border: none; }
         .close-gallery { position: absolute; top: 20px; right: 30px; color: white; font-size: 2rem; cursor: pointer; z-index: 2001; }
         .close-gallery:hover { color: var(--accent-orange); }
         .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); color: white; border: none; padding: 15px; font-size: 1.5rem; cursor: pointer; border-radius: 50%; transition: 0.3s; z-index: 2001; }
@@ -113,7 +115,7 @@
     </section>
 
     <div class="products-grid" id="products-container">
-        <p style="text-align: center; grid-column: 1/-1; padding: 50px;">A carregar hardwares de elite...</p>
+        <p id="loading-msg" style="text-align: center; grid-column: 1/-1; padding: 50px;">A carregar hardwares de elite...</p>
     </div>
 
     <div class="cart-modal" id="cart-modal">
@@ -164,14 +166,31 @@
             return match ? match[1] : null;
         }
 
+        // Sistema Turbo com Cache Local
         async function carregarProdutos() {
+            // 1. Tenta carregar do cache para ser instantâneo
+            const cache = localStorage.getItem('ferritech_produtos_cache');
+            if (cache) {
+                products = JSON.parse(cache);
+                renderizarProdutos();
+            }
+
+            // 2. Busca na API do Render para ver se tem atualizações
             try {
                 const res = await fetch(`${API_BASE_URL}/api/produtos`);
                 if (!res.ok) throw new Error("Erro na rede");
-                products = await res.json();
-                renderizarProdutos();
+                const novosProdutos = await res.json();
+                
+                // Se a API trouxe dados diferentes do cache, atualiza a tela
+                if (JSON.stringify(products) !== JSON.stringify(novosProdutos)) {
+                    products = novosProdutos;
+                    localStorage.setItem('ferritech_produtos_cache', JSON.stringify(products));
+                    renderizarProdutos();
+                }
             } catch (error) {
-                document.getElementById('products-container').innerHTML = `<p style="grid-column: 1/-1; text-align:center">Erro ao carregar produtos. Tente novamente mais tarde.</p>`;
+                if (!cache) {
+                    document.getElementById('products-container').innerHTML = `<p style="grid-column: 1/-1; text-align:center; color: #ff4444;">Erro ao carregar produtos. O servidor pode estar hibernando, recarregue a página.</p>`;
+                }
             }
         }
 
@@ -188,25 +207,26 @@
 
                 // 1. YouTube
                 if (ytId) {
-                    mediaElement = `<img src="https://img.youtube.com/vi/${ytId}/hqdefault.jpg" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    mediaElement = `<img src="https://img.youtube.com/vi/${ytId}/hqdefault.jpg" alt="${p.name}">`;
                     hasPlayIcon = true;
                 } 
                 // 2. Google Drive
                 else if (driveId) {
-                    mediaElement = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" frameborder="0" style="width: 100%; height: 100%; pointer-events: none;"></iframe>`;
+                    mediaElement = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" frameborder="0" scrolling="no"></iframe>`;
                 }
                 // 3. Streamable
                 else if (mainMedia.includes('streamable.com')) {
                     const streamId = mainMedia.split('/').pop();
-                    mediaElement = `<iframe src="https://streamable.com/e/${streamId}?muted=1&autoplay=1&controls=0" frameborder="0" style="width: 100%; height: 100%; pointer-events: none;"></iframe>`;
+                    // Adicionado object-fit ao estilo inline para forçar o player a cobrir tudo
+                    mediaElement = `<iframe src="https://streamable.com/e/${streamId}?muted=1&autoplay=1&controls=0&nocontrols=1" frameborder="0" style="pointer-events: none; object-fit: cover;"></iframe>`;
                 } 
                 // 4. Arquivos de Vídeo Direto (.mp4, etc)
                 else if (mainMedia.match(/\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video')) {
-                    mediaElement = `<video src="${mainMedia}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: contain; pointer-events: none;"></video>`;
+                    mediaElement = `<video src="${mainMedia}" autoplay muted loop playsinline></video>`;
                 } 
                 // 5. Imagem Normal
                 else {
-                    mediaElement = `<img src="${mainMedia}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                    mediaElement = `<img src="${mainMedia}" alt="${p.name}">`;
                 }
 
                 let playIconHtml = hasPlayIcon ? `<i class="fas fa-play-circle play-icon"></i>` : '';
@@ -259,20 +279,20 @@
             
             // 1. YouTube
             if (ytId) {
-                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width: 100%; height: 100%; border-radius: 8px;"></iframe>`;
+                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             } 
             // 2. Google Drive
             else if (driveId) {
-                container.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" frameborder="0" allowfullscreen style="width: 100%; height: 100%; border-radius: 8px;"></iframe>`;
+                container.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" allowfullscreen></iframe>`;
             }
             // 3. Streamable
             else if (mediaUrl.includes('streamable.com')) {
                 const streamId = mediaUrl.split('/').pop();
-                container.innerHTML = `<iframe src="https://streamable.com/e/${streamId}" frameborder="0" allowfullscreen style="width: 100%; height: 100%; border-radius: 8px;"></iframe>`;
+                container.innerHTML = `<iframe src="https://streamable.com/e/${streamId}" allowfullscreen></iframe>`;
             } 
             // 4. Arquivos de Vídeo Diretos
             else if (mediaUrl.match(/\.(mp4|webm|ogg|mov)/i) || mediaUrl.includes('video')) {
-                container.innerHTML = `<video src="${mediaUrl}" autoplay controls playsinline style="max-width: 100%; max-height: 100%; border-radius: 8px;"></video>`;
+                container.innerHTML = `<video src="${mediaUrl}" autoplay controls playsinline></video>`;
             } 
             // 5. Imagens
             else {
