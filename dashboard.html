@@ -1,124 +1,251 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <script>
-        // Bloqueio de segurança simples: se não veio do login, volta pra lá
-        if (sessionStorage.getItem('isAdmin') !== 'true') {
-            window.location.href = 'login.html';
-        }
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin | FerriTech</title>
+    <title>FerriTech | Painel Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-dark: #0a0a0a; --bg-panel: #141414; --accent-blue: #00eaff; --text-main: #ffffff; }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Montserrat', sans-serif; }
-        body { background: var(--bg-dark); color: white; display:flex; height:100vh; overflow:hidden; }
-        .sidebar { width: 260px; background: var(--bg-panel); border-right: 1px solid #222; padding: 30px; text-align:center; display: flex; flex-direction: column; }
-        .sidebar a { color: #888; text-decoration: none; padding: 15px; margin-top: 10px; border-radius: 8px; transition: 0.3s; display: block; text-align: left; }
-        .sidebar a:hover { background: rgba(0, 234, 255, 0.1); color: var(--accent-blue); }
-        .sidebar .logout { margin-top: auto; color: #ff4444; cursor: pointer; }
-        .main { flex:1; padding:40px; overflow-y:auto; }
-        .card { background: var(--bg-panel); border: 1px solid #222; border-radius: 12px; padding: 30px; margin-bottom: 30px; }
-        label { display:block; margin-bottom:8px; color:#888; font-size:0.9rem; font-weight: 600; }
-        input { width:100%; padding:12px; margin-bottom:15px; background:#000; border:1px solid #333; color:white; border-radius:6px; outline:none; }
-        .media-group { border: 1px dashed #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        button { width:100%; padding:16px; background: var(--accent-blue); color:black; font-weight:800; border:none; border-radius:8px; cursor:pointer; text-transform:uppercase; transition: 0.3s; }
-        .product-list-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 15px; border: 1px solid #333; border-radius: 8px; margin-bottom: 10px; }
-        .delete-btn { width: auto; background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 10px; }
-        .delete-btn:hover { background: #ff4444; color: white; }
+        :root {
+            --bg-dark: #0f0f0f;
+            --bg-card: #181818;
+            --accent-blue: #00eaff;
+            --accent-orange: #ff8c00;
+            --danger: #ff4444;
+            --success: #00c851;
+            --text-main: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        
+        body { background-color: var(--bg-dark); color: var(--text-main); }
+
+        header {
+            background: rgba(0, 0, 0, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+        }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo-text span { color: var(--accent-blue); }
+        .back-link { color: #888; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { color: white; }
+
+        .admin-container { padding: 40px 5%; max-width: 1200px; margin: 0 auto; }
+        
+        /* Formulário */
+        .form-card { background: var(--bg-card); padding: 30px; border-radius: 12px; border: 1px solid #333; margin-bottom: 40px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #ccc; font-size: 0.9rem; }
+        .form-control { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 6px; font-family: inherit; }
+        .form-control:focus { outline: none; border-color: var(--accent-blue); }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+        
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-primary { background: var(--accent-blue); color: #000; }
+        .btn-primary:hover { background: #00bccc; }
+        .btn-cancel { background: #444; color: white; margin-left: 10px; display: none; }
+        
+        /* Tabela */
+        .table-responsive { overflow-x: auto; background: var(--bg-card); border-radius: 12px; border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 15px 20px; border-bottom: 1px solid #222; }
+        th { background: #111; color: var(--accent-blue); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
+        tr:hover { background: #222; }
+        
+        .media-preview { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; background: #000; }
+        
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-right: 15px; transition: 0.2s; }
+        .edit-btn { color: var(--accent-orange); }
+        .edit-btn:hover { color: #cc7000; }
+        .delete-btn { color: var(--danger); }
+        .delete-btn:hover { color: #cc0000; }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <h2 style="font-weight:800">Ferri<span style="color:var(--accent-blue)">Tech</span></h2>
-        <a href="#" style="background: rgba(0, 234, 255, 0.1); color: var(--accent-blue);"><i class="fas fa-box"></i> Gerenciar Estoque</a>
-        <a href="index.html"><i class="fas fa-store"></i> Ver Loja</a>
-        <div class="logout" onclick="sessionStorage.clear(); window.location.href='login.html';"><i class="fas fa-sign-out-alt"></i> Sair</div>
-    </aside>
-    
-    <main class="main">
-        <div class="card" style="max-width: 800px; margin: 0 auto 30px;">
-            <h2 style="margin-bottom:25px; color: var(--accent-blue);">Cadastrar Novo Anúncio</h2>
-            <form id="prodForm">
-                <label>Nome do Produto</label>
-                <input type="text" id="nome" placeholder="Ex: RTX 4060 Ti 8GB" required>
-                <div style="display: flex; gap: 15px;">
-                    <div style="flex: 1;">
-                        <label>Preço (R$)</label>
-                        <input type="number" step="0.01" id="preco" placeholder="Ex: 2499.90" required>
-                    </div>
-                    <div style="flex: 1;">
-                        <label>Estoque</label>
-                        <input type="number" id="estoque" placeholder="Ex: 10" required>
-                    </div>
+
+    <header>
+        <div class="logo-text">Ferri<span>Tech</span> Admin</div>
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para Loja</a>
+    </header>
+
+    <div class="admin-container">
+        <div class="form-card">
+            <h2 id="form-title" style="margin-bottom: 25px;"><i class="fas fa-plus-circle"></i> Novo Anúncio</h2>
+            <form id="product-form" onsubmit="salvarProduto(event)">
+                <input type="hidden" id="produto-id">
+                
+                <div class="form-group">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="nome" class="form-control" required placeholder="Ex: Placa de Vídeo RTX 3060">
                 </div>
-                <div class="media-group">
-                    <label style="color: var(--accent-blue);"><i class="fas fa-photo-video"></i> Mídias (Fotos ou Vídeos)</label>
-                    <input type="url" class="media-input" placeholder="Mídia 1 (Capa)" required>
-                    <input type="url" class="media-input" placeholder="Mídia 2">
-                    <input type="url" class="media-input" placeholder="Mídia 3">
-                    <input type="url" class="media-input" placeholder="Mídia 4">
-                    <input type="url" class="media-input" placeholder="Mídia 5">
+                
+                <div class="form-group">
+                    <label>Preço (R$)</label>
+                    <input type="number" id="preco" class="form-control" step="0.01" required placeholder="Ex: 1500.00">
                 </div>
-                <button type="submit" id="submitBtn">PUBLICAR NO SITE OFICIAL</button>
+                
+                <div class="form-group">
+                    <label>Links das Mídias (Fotos/Vídeos) - Um link por linha</label>
+                    <textarea id="midias" class="form-control" required placeholder="https://link-da-foto.com/imagem.jpg&#10;https://link-do-video.com/video.mp4"></textarea>
+                    <small style="color: #666; margin-top: 5px; display: block;">Cole os links diretos das imagens ou vídeos.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btn-salvar"><i class="fas fa-save"></i> Salvar Produto</button>
+                <button type="button" class="btn btn-cancel" id="btn-cancelar" onclick="limparFormulario()"><i class="fas fa-times"></i> Cancelar Edição</button>
             </form>
         </div>
 
-        <div class="card" style="max-width: 800px; margin: 0 auto;">
-            <h2>Anúncios Ativos</h2>
-            <div id="active-products">Carregando...</div>
+        <h2 style="margin-bottom: 20px;"><i class="fas fa-box"></i> Meus Anúncios</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mídia</th>
+                        <th>Nome</th>
+                        <th>Preço</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-produtos">
+                    <tr><td colspan="4" style="text-align:center;">Carregando anúncios...</td></tr>
+                </tbody>
+            </table>
         </div>
-    </main>
+    </div>
 
     <script>
         const API_BASE_URL = 'https://ferritech-api.onrender.com';
+        let produtos = [];
 
-        async function loadAdminProducts() {
+        // Carregar os produtos da API
+        async function carregarProdutos() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/produtos`);
-                const produtos = await res.json();
-                const container = document.getElementById('active-products');
-                container.innerHTML = produtos.map(p => `
-                    <div class="product-list-item">
-                        <div>
-                            <strong>${p.name}</strong><br>
-                            <span style="color: var(--accent-blue);">R$ ${p.price.toLocaleString('pt-BR')}</span>
-                        </div>
-                        <button class="delete-btn" onclick="deleteProduct('${p.id}')">Excluir</button>
-                    </div>
-                `).join('');
-            } catch (err) { console.error("Erro ao carregar lista."); }
+                if (!res.ok) throw new Error("Erro ao buscar dados");
+                produtos = await res.json();
+                renderizarTabela();
+            } catch (error) {
+                document.getElementById('lista-produtos').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Erro ao conectar com a API.</td></tr>`;
+            }
         }
 
-        async function deleteProduct(id) {
-            if(!confirm("Excluir este anúncio?")) return;
-            await fetch(`${API_BASE_URL}/api/produtos/${id}`, { method: 'DELETE' });
-            loadAdminProducts();
+        // Renderizar a tabela
+        function renderizarTabela() {
+            const tbody = document.getElementById('lista-produtos');
+            if (produtos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum produto cadastrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = produtos.map(p => {
+                const mainMedia = p.media && p.media.length > 0 ? p.media[0] : '';
+                const isVideo = mainMedia.match(/\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video');
+                
+                const midiaHtml = isVideo 
+                    ? `<video src="${mainMedia}" class="media-preview" muted loop playsinline></video>`
+                    : `<img src="${mainMedia}" class="media-preview" alt="foto">`;
+
+                return `
+                <tr>
+                    <td>${mainMedia ? midiaHtml : '<div class="media-preview"></div>'}</td>
+                    <td style="font-weight: 600;">${p.name}</td>
+                    <td style="color: var(--accent-blue); font-weight: 800;">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="prepararEdicao(${p.id})" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn" onclick="excluirProduto(${p.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
         }
 
-        document.getElementById('prodForm').onsubmit = async (e) => {
+        // Criar ou Atualizar Produto
+        async function salvarProduto(e) {
             e.preventDefault();
-            const mediaArray = Array.from(document.querySelectorAll('.media-input')).map(i => i.value).filter(v => v !== "");
-            const payload = {
-                name: document.getElementById('nome').value,
-                price: parseFloat(document.getElementById('preco').value),
-                stock: parseInt(document.getElementById('estoque').value),
-                media: mediaArray
-            };
-            await fetch(`${API_BASE_URL}/api/produtos`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            alert("Publicado!");
-            e.target.reset();
-            loadAdminProducts();
-        };
+            const id = document.getElementById('produto-id').value;
+            const nome = document.getElementById('nome').value;
+            const preco = parseFloat(document.getElementById('preco').value);
+            
+            // Pega o textarea, separa por linhas (quebras de linha) e limpa espaços vazios
+            const textMidias = document.getElementById('midias').value;
+            const arrayMidias = textMidias.split('\n').map(link => link.trim()).filter(link => link !== '');
 
-        loadAdminProducts();
+            const produtoData = {
+                name: nome,
+                price: preco,
+                media: arrayMidias
+            };
+
+            try {
+                const url = id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`;
+                const metodo = id ? 'PUT' : 'POST'; // PUT se tem ID (Editar), POST se não tem (Criar)
+
+                const res = await fetch(url, {
+                    method: metodo,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(produtoData)
+                });
+
+                if (res.ok) {
+                    alert(id ? "Anúncio atualizado!" : "Anúncio criado com sucesso!");
+                    limparFormulario();
+                    carregarProdutos();
+                } else {
+                    alert("Erro ao salvar produto no servidor.");
+                }
+            } catch (error) {
+                alert("Erro de conexão com a API.");
+            }
+        }
+
+        // Jogar dados do produto para o formulário
+        function prepararEdicao(id) {
+            const produto = produtos.find(p => p.id === id);
+            if (!produto) return;
+
+            document.getElementById('produto-id').value = produto.id;
+            document.getElementById('nome').value = produto.name;
+            document.getElementById('preco').value = produto.price;
+            document.getElementById('midias').value = produto.media ? produto.media.join('\n') : '';
+
+            // Muda visual do formulário
+            document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editando Anúncio';
+            document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Atualizar Produto';
+            document.getElementById('btn-cancelar').style.display = 'inline-flex';
+            
+            // Rola a tela pra cima
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Limpar form após editar ou cancelar
+        function limparFormulario() {
+            document.getElementById('product-form').reset();
+            document.getElementById('produto-id').value = '';
+            document.getElementById('form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Novo Anúncio';
+            document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Salvar Produto';
+            document.getElementById('btn-cancelar').style.display = 'none';
+        }
+
+        // Deletar Produto
+        async function excluirProduto(id) {
+            if (!confirm("Tem certeza que deseja excluir este anúncio permanentemente?")) return;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    carregarProdutos(); // Recarrega a tabela
+                } else {
+                    alert("Erro ao excluir o produto no servidor.");
+                }
+            } catch (error) {
+                alert("Erro de conexão com a API.");
+            }
+        }
+
+        carregarProdutos();
     </script>
 </body>
 </html>
