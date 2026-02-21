@@ -151,8 +151,8 @@
                     <td style="font-weight: 600;">${p.name}</td>
                     <td style="color: var(--accent-blue); font-weight: 800;">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td>
-                        <button class="action-btn edit-btn" onclick="prepararEdicao(${p.id})" title="Editar"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete-btn" onclick="excluirProduto(${p.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                        <button class="action-btn edit-btn" onclick="prepararEdicao('${p.id}')" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn" onclick="excluirProduto('${p.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
                 `;
@@ -200,7 +200,7 @@
 
         // Jogar dados do produto para o formulário
         function prepararEdicao(id) {
-            const produto = produtos.find(p => p.id === id);
+            const produto = produtos.find(p => p.id == id);
             if (!produto) return;
 
             document.getElementById('produto-id').value = produto.id;
