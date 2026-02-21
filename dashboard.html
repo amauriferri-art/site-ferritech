@@ -52,7 +52,9 @@
         th { background: #111; color: var(--accent-blue); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
         tr:hover { background: #222; }
         
-        .media-preview { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; background: #000; }
+        .media-preview-container { width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; position: relative;}
+        .media-preview-container img, .media-preview-container video { width: 100%; height: 100%; object-fit: cover; }
+        .admin-play-icon { position: absolute; font-size: 1.5rem; color: rgba(255,255,255,0.8); }
         
         .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-right: 15px; transition: 0.2s; }
         .edit-btn { color: var(--accent-orange); }
@@ -85,9 +87,9 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Links das Mídias (Fotos/Vídeos) - Um link por linha</label>
-                    <textarea id="midias" class="form-control" required placeholder="https://link-da-foto.com/imagem.jpg&#10;https://link-do-video.com/video.mp4"></textarea>
-                    <small style="color: #666; margin-top: 5px; display: block;">Cole os links diretos das imagens ou vídeos.</small>
+                    <label>Links das Mídias (Um link por linha)</label>
+                    <textarea id="midias" class="form-control" required placeholder="https://i.ibb.co/...&#10;https://youtube.com/watch?v=...&#10;https://drive.google.com/file/d/..."></textarea>
+                    <small style="color: #666; margin-top: 5px; display: block;">Suporta links diretos de fotos, YouTube, Google Drive e Streamable.</small>
                 </div>
 
                 <button type="submit" class="btn btn-primary" id="btn-salvar"><i class="fas fa-save"></i> Salvar Produto</button>
@@ -117,7 +119,17 @@
         const API_BASE_URL = 'https://ferritech-api.onrender.com';
         let produtos = [];
 
-        // Carregar os produtos da API
+        function getYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function getDriveId(url) {
+            const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+            return match ? match[1] : null;
+        }
+
         async function carregarProdutos() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/produtos`);
@@ -129,7 +141,6 @@
             }
         }
 
-        // Renderizar a tabela
         function renderizarTabela() {
             const tbody = document.getElementById('lista-produtos');
             if (produtos.length === 0) {
@@ -139,15 +150,25 @@
 
             tbody.innerHTML = produtos.map(p => {
                 const mainMedia = p.media && p.media.length > 0 ? p.media[0] : '';
-                const isVideo = mainMedia.match(/\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video');
-                
-                const midiaHtml = isVideo 
-                    ? `<video src="${mainMedia}" class="media-preview" muted loop playsinline></video>`
-                    : `<img src="${mainMedia}" class="media-preview" alt="foto">`;
+                const ytId = getYouTubeId(mainMedia);
+                const driveId = getDriveId(mainMedia);
+                let midiaHtml = '<div class="media-preview-container"></div>';
+
+                if (mainMedia) {
+                    if (ytId) {
+                        midiaHtml = `<div class="media-preview-container"><img src="https://img.youtube.com/vi/${ytId}/default.jpg"><i class="fab fa-youtube admin-play-icon" style="color:red"></i></div>`;
+                    } else if (driveId) {
+                        midiaHtml = `<div class="media-preview-container"><i class="fab fa-google-drive" style="font-size:2rem; color:#00eaff"></i></div>`;
+                    } else if (mainMedia.includes('streamable.com') || mainMedia.match(/\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video')) {
+                        midiaHtml = `<div class="media-preview-container"><i class="fas fa-video" style="font-size:1.5rem; color:#888"></i></div>`;
+                    } else {
+                        midiaHtml = `<div class="media-preview-container"><img src="${mainMedia}"></div>`;
+                    }
+                }
 
                 return `
                 <tr>
-                    <td>${mainMedia ? midiaHtml : '<div class="media-preview"></div>'}</td>
+                    <td>${midiaHtml}</td>
                     <td style="font-weight: 600;">${p.name}</td>
                     <td style="color: var(--accent-blue); font-weight: 800;">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td>
@@ -159,26 +180,19 @@
             }).join('');
         }
 
-        // Criar ou Atualizar Produto
         async function salvarProduto(e) {
             e.preventDefault();
             const id = document.getElementById('produto-id').value;
             const nome = document.getElementById('nome').value;
             const preco = parseFloat(document.getElementById('preco').value);
-            
-            // Pega o textarea, separa por linhas (quebras de linha) e limpa espaços vazios
             const textMidias = document.getElementById('midias').value;
             const arrayMidias = textMidias.split('\n').map(link => link.trim()).filter(link => link !== '');
 
-            const produtoData = {
-                name: nome,
-                price: preco,
-                media: arrayMidias
-            };
+            const produtoData = { name: nome, price: preco, media: arrayMidias };
 
             try {
                 const url = id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`;
-                const metodo = id ? 'PUT' : 'POST'; // PUT se tem ID (Editar), POST se não tem (Criar)
+                const metodo = id ? 'PUT' : 'POST'; 
 
                 const res = await fetch(url, {
                     method: metodo,
@@ -198,26 +212,19 @@
             }
         }
 
-        // Jogar dados do produto para o formulário
         function prepararEdicao(id) {
             const produto = produtos.find(p => p.id == id);
             if (!produto) return;
-
             document.getElementById('produto-id').value = produto.id;
             document.getElementById('nome').value = produto.name;
             document.getElementById('preco').value = produto.price;
             document.getElementById('midias').value = produto.media ? produto.media.join('\n') : '';
-
-            // Muda visual do formulário
             document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editando Anúncio';
             document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Atualizar Produto';
             document.getElementById('btn-cancelar').style.display = 'inline-flex';
-            
-            // Rola a tela pra cima
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Limpar form após editar ou cancelar
         function limparFormulario() {
             document.getElementById('product-form').reset();
             document.getElementById('produto-id').value = '';
@@ -226,20 +233,12 @@
             document.getElementById('btn-cancelar').style.display = 'none';
         }
 
-        // Deletar Produto
         async function excluirProduto(id) {
             if (!confirm("Tem certeza que deseja excluir este anúncio permanentemente?")) return;
-
             try {
-                const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (res.ok) {
-                    carregarProdutos(); // Recarrega a tabela
-                } else {
-                    alert("Erro ao excluir o produto no servidor.");
-                }
+                const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, { method: 'DELETE' });
+                if (res.ok) carregarProdutos();
+                else alert("Erro ao excluir o produto no servidor.");
             } catch (error) {
                 alert("Erro de conexão com a API.");
             }
