@@ -227,14 +227,14 @@
 
                 return `
                 <div class="product-card">
-                    <div class="product-img-container" onclick="abrirGaleria(${p.id})">
+                    <div class="product-img-container" onclick="abrirGaleria('${p.id}')">
                         ${mediaElement}
                         ${badge}
                     </div>
                     <div class="product-info">
                         <h3 class="product-title">${p.name}</h3>
                         <div class="price">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                        <button class="add-btn" onclick="addToCart(${p.id})"><i class="fas fa-cart-plus"></i> Comprar</button>
+                        <button class="add-btn" onclick="addToCart('${p.id}')"><i class="fas fa-cart-plus"></i> Comprar</button>
                     </div>
                 </div>
                 `;
@@ -243,7 +243,7 @@
 
         /* Funções da Galeria */
         function abrirGaleria(id) {
-            const p = products.find(item => item.id === id);
+            const p = products.find(item => item.id == id);
             if (!p || !p.media || p.media.length === 0) return;
             
             produtoAtualMedia = p.media;
@@ -281,10 +281,12 @@
 
         /* Funções do Carrinho */
         function addToCart(id) {
-            const p = products.find(item => item.id === id);
-            cart.push(p);
-            atualizarCarrinho();
-            openCart();
+            const p = products.find(item => item.id == id);
+            if (p) {
+                cart.push(p);
+                atualizarCarrinho();
+                openCart();
+            }
         }
 
         function atualizarCarrinho() {
