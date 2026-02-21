@@ -6,6 +6,13 @@
     <title>FerriTech | Painel Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        if (sessionStorage.getItem('isAdmin') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    
     <style>
         :root {
             --bg-dark: #0f0f0f;
@@ -27,14 +34,15 @@
         }
         .logo-text { font-size: 1.5rem; font-weight: 800; color: white; }
         .logo-text span { color: var(--accent-blue); }
-        .back-link { color: #888; text-decoration: none; font-size: 0.9rem; }
+        .header-links { display: flex; gap: 20px; }
+        .back-link { color: #888; text-decoration: none; font-size: 0.9rem; transition: 0.3s;}
         .back-link:hover { color: white; }
+        .logout-link:hover { color: var(--danger); }
 
         .admin-container { padding: 40px 5%; max-width: 1200px; margin: 0 auto; }
         
         .form-card { background: var(--bg-card); padding: 30px; border-radius: 12px; border: 1px solid #333; margin-bottom: 40px; }
         
-        /* Grid para o formulário ficar mais organizado */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-group.full-width { grid-column: 1 / -1; }
         
@@ -75,7 +83,10 @@
 
     <header>
         <div class="logo-text">Ferri<span>Tech</span> Admin</div>
-        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para Loja</a>
+        <div class="header-links">
+            <a href="index.html" class="back-link"><i class="fas fa-store"></i> Ver Loja</a>
+            <a href="#" onclick="fazerLogout()" class="back-link logout-link"><i class="fas fa-sign-out-alt"></i> Sair</a>
+        </div>
     </header>
 
     <div class="admin-container">
@@ -148,6 +159,11 @@
     <script>
         const API_BASE_URL = 'https://ferritech-api.onrender.com';
         let produtos = [];
+
+        function fazerLogout() {
+            sessionStorage.removeItem('isAdmin'); // Tira o crachá
+            window.location.href = 'login.html';  // Manda pro login
+        }
 
         function getYouTubeId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
