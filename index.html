@@ -56,10 +56,19 @@
         .product-card { background: var(--bg-card); border: 1px solid #2a2a2a; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s; position: relative; }
         .product-card:hover { border-color: var(--accent-blue); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 234, 255, 0.15); }
         
-        /* Ajuste do container para vídeos e imagens ocuparem 100% e sumir o fundo branco */
+        /* --- CORREÇÃO DAS MÍDIAS AQUI --- */
         .product-img-container { height: 220px; background: #0a0a0a; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; }
-        .product-img-container img, .product-img-container video, .product-img-container iframe { width: 100%; height: 100%; object-fit: cover; border: none; }
         
+        /* Regra geral para tamanho */
+        .product-img-container img, .product-img-container video, .product-img-container iframe { width: 100%; height: 100%; border: none; }
+        
+        /* FOTOS: Devem ser contidas para não distorcer (contain) */
+        .product-img-container img { object-fit: contain; }
+        
+        /* VÍDEOS: Devem cobrir tudo para não ficar borda (cover) */
+        .product-img-container video, .product-img-container iframe { object-fit: cover; }
+        /* -------------------------------- */
+
         .media-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; z-index: 10; }
         .play-icon { position: absolute; font-size: 3rem; color: rgba(255,255,255,0.8); text-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none; z-index: 5; }
 
@@ -154,7 +163,6 @@
         let midiaAtualIndex = 0;
         let produtoAtualMedia = [];
 
-        // Funções para extrair IDs de vídeos
         function getYouTubeId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
             const match = url.match(regExp);
@@ -166,22 +174,18 @@
             return match ? match[1] : null;
         }
 
-        // Sistema Turbo com Cache Local
         async function carregarProdutos() {
-            // 1. Tenta carregar do cache para ser instantâneo
             const cache = localStorage.getItem('ferritech_produtos_cache');
             if (cache) {
                 products = JSON.parse(cache);
                 renderizarProdutos();
             }
 
-            // 2. Busca na API do Render para ver se tem atualizações
             try {
                 const res = await fetch(`${API_BASE_URL}/api/produtos`);
                 if (!res.ok) throw new Error("Erro na rede");
                 const novosProdutos = await res.json();
                 
-                // Se a API trouxe dados diferentes do cache, atualiza a tela
                 if (JSON.stringify(products) !== JSON.stringify(novosProdutos)) {
                     products = novosProdutos;
                     localStorage.setItem('ferritech_produtos_cache', JSON.stringify(products));
@@ -205,26 +209,22 @@
                 const driveId = getDriveId(mainMedia);
                 let hasPlayIcon = false;
 
-                // 1. YouTube
                 if (ytId) {
+                    // Capa do YouTube é uma imagem, então ela vai obedecer ao "contain" do CSS
                     mediaElement = `<img src="https://img.youtube.com/vi/${ytId}/hqdefault.jpg" alt="${p.name}">`;
                     hasPlayIcon = true;
                 } 
-                // 2. Google Drive
                 else if (driveId) {
-                    mediaElement = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" frameborder="0" scrolling="no"></iframe>`;
+                    mediaElement = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" frameborder="0" scrolling="no" style="pointer-events: none;"></iframe>`;
                 }
-                // 3. Streamable
                 else if (mainMedia.includes('streamable.com')) {
                     const streamId = mainMedia.split('/').pop();
-                    // Adicionado object-fit ao estilo inline para forçar o player a cobrir tudo
-                    mediaElement = `<iframe src="https://streamable.com/e/${streamId}?muted=1&autoplay=1&controls=0&nocontrols=1" frameborder="0" style="pointer-events: none; object-fit: cover;"></iframe>`;
+                    // Removi o estilo inline que forçava o cover, agora o CSS cuida disso
+                    mediaElement = `<iframe src="https://streamable.com/e/${streamId}?muted=1&autoplay=1&controls=0&nocontrols=1" frameborder="0" style="pointer-events: none;"></iframe>`;
                 } 
-                // 4. Arquivos de Vídeo Direto (.mp4, etc)
                 else if (mainMedia.match(/\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video')) {
-                    mediaElement = `<video src="${mainMedia}" autoplay muted loop playsinline></video>`;
+                    mediaElement = `<video src="${mainMedia}" autoplay muted loop playsinline style="pointer-events: none;"></video>`;
                 } 
-                // 5. Imagem Normal
                 else {
                     mediaElement = `<img src="${mainMedia}" alt="${p.name}">`;
                 }
@@ -277,26 +277,22 @@
             const ytId = getYouTubeId(mediaUrl);
             const driveId = getDriveId(mediaUrl);
             
-            // 1. YouTube
             if (ytId) {
                 container.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             } 
-            // 2. Google Drive
             else if (driveId) {
                 container.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" allowfullscreen></iframe>`;
             }
-            // 3. Streamable
             else if (mediaUrl.includes('streamable.com')) {
                 const streamId = mediaUrl.split('/').pop();
                 container.innerHTML = `<iframe src="https://streamable.com/e/${streamId}" allowfullscreen></iframe>`;
             } 
-            // 4. Arquivos de Vídeo Diretos
             else if (mediaUrl.match(/\.(mp4|webm|ogg|mov)/i) || mediaUrl.includes('video')) {
                 container.innerHTML = `<video src="${mediaUrl}" autoplay controls playsinline></video>`;
             } 
-            // 5. Imagens
             else {
-                container.innerHTML = `<img src="${mediaUrl}" alt="Mídia do Produto">`;
+                // Na galeria, as imagens também devem ser contidas (contain)
+                container.innerHTML = `<img src="${mediaUrl}" alt="Mídia do Produto" style="object-fit: contain;">`;
             }
         }
 
