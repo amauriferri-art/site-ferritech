@@ -32,8 +32,12 @@
 
         .admin-container { padding: 40px 5%; max-width: 1200px; margin: 0 auto; }
         
-        /* Formulário */
         .form-card { background: var(--bg-card); padding: 30px; border-radius: 12px; border: 1px solid #333; margin-bottom: 40px; }
+        
+        /* Grid para o formulário ficar mais organizado */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #ccc; font-size: 0.9rem; }
         .form-control { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 6px; font-family: inherit; }
@@ -45,10 +49,9 @@
         .btn-primary:hover { background: #00bccc; }
         .btn-cancel { background: #444; color: white; margin-left: 10px; display: none; }
         
-        /* Tabela */
         .table-responsive { overflow-x: auto; background: var(--bg-card); border-radius: 12px; border: 1px solid #333; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 15px 20px; border-bottom: 1px solid #222; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
+        th, td { padding: 15px 20px; border-bottom: 1px solid #222; vertical-align: middle; }
         th { background: #111; color: var(--accent-blue); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
         tr:hover { background: #222; }
         
@@ -61,6 +64,11 @@
         .edit-btn:hover { color: #cc7000; }
         .delete-btn { color: var(--danger); }
         .delete-btn:hover { color: #cc0000; }
+        
+        .badge { background: #333; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge-destaque { background: var(--accent-orange); color: #000; }
+        
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -76,24 +84,45 @@
             <form id="product-form" onsubmit="salvarProduto(event)">
                 <input type="hidden" id="produto-id">
                 
-                <div class="form-group">
-                    <label>Nome do Produto</label>
-                    <input type="text" id="nome" class="form-control" required placeholder="Ex: Placa de Vídeo RTX 3060">
-                </div>
-                
-                <div class="form-group">
-                    <label>Preço (R$)</label>
-                    <input type="number" id="preco" class="form-control" step="0.01" required placeholder="Ex: 1500.00">
-                </div>
-                
-                <div class="form-group">
-                    <label>Links das Mídias (Um link por linha)</label>
-                    <textarea id="midias" class="form-control" required placeholder="https://i.ibb.co/...&#10;https://youtube.com/watch?v=...&#10;https://drive.google.com/file/d/..."></textarea>
-                    <small style="color: #666; margin-top: 5px; display: block;">Suporta links diretos de fotos, YouTube, Google Drive e Streamable.</small>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Nome do Produto</label>
+                        <input type="text" id="nome" class="form-control" required placeholder="Ex: Placa de Vídeo RTX 3060">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Preço (R$)</label>
+                        <input type="number" id="preco" class="form-control" step="0.01" required placeholder="Ex: 1500.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <select id="categoria" class="form-control" required>
+                            <option value="CPU Gamer">CPU Gamer</option>
+                            <option value="Processadores">Processadores</option>
+                            <option value="Memorias">Memórias</option>
+                            <option value="Periféricos">Periféricos</option>
+                            <option value="Pc gamer completo">PC Gamer Completo</option>
+                            <option value="Celulares">Celulares</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Posição nos Destaques (0 = Não destacar. 1, 2, 3... = Ordem de exibição)</label>
+                        <input type="number" id="destaque" class="form-control" value="0" min="0" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Links das Mídias (Um link por linha)</label>
+                        <textarea id="midias" class="form-control" required placeholder="https://i.ibb.co/...&#10;https://youtube.com/watch?v=..."></textarea>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" id="btn-salvar"><i class="fas fa-save"></i> Salvar Produto</button>
-                <button type="button" class="btn btn-cancel" id="btn-cancelar" onclick="limparFormulario()"><i class="fas fa-times"></i> Cancelar Edição</button>
+                <div style="margin-top: 10px;">
+                    <button type="submit" class="btn btn-primary" id="btn-salvar"><i class="fas fa-save"></i> Salvar Produto</button>
+                    <button type="button" class="btn btn-cancel" id="btn-cancelar" onclick="limparFormulario()"><i class="fas fa-times"></i> Cancelar Edição</button>
+                </div>
             </form>
         </div>
 
@@ -105,11 +134,12 @@
                         <th>Mídia</th>
                         <th>Nome</th>
                         <th>Preço</th>
+                        <th>Categoria / Ordem</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="lista-produtos">
-                    <tr><td colspan="4" style="text-align:center;">Carregando anúncios...</td></tr>
+                    <tr><td colspan="5" style="text-align:center;">Carregando anúncios...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -135,16 +165,24 @@
                 const res = await fetch(`${API_BASE_URL}/api/produtos`);
                 if (!res.ok) throw new Error("Erro ao buscar dados");
                 produtos = await res.json();
+                
+                // Organiza a tabela para mostrar os destaques primeiro
+                produtos.sort((a, b) => {
+                    const orderA = a.featuredOrder > 0 ? a.featuredOrder : 9999;
+                    const orderB = b.featuredOrder > 0 ? b.featuredOrder : 9999;
+                    return orderA - orderB;
+                });
+
                 renderizarTabela();
             } catch (error) {
-                document.getElementById('lista-produtos').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Erro ao conectar com a API.</td></tr>`;
+                document.getElementById('lista-produtos').innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro ao conectar com a API.</td></tr>`;
             }
         }
 
         function renderizarTabela() {
             const tbody = document.getElementById('lista-produtos');
             if (produtos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum produto cadastrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum produto cadastrado.</td></tr>`;
                 return;
             }
 
@@ -166,11 +204,19 @@
                     }
                 }
 
+                // Definir exibição da categoria e ordem
+                const categoriaStr = p.category || 'Outros';
+                let ordemHtml = `<span class="badge">${categoriaStr}</span>`;
+                if (p.featuredOrder > 0) {
+                    ordemHtml += `<br><span class="badge badge-destaque" style="margin-top:5px; display:inline-block;">★ Destaque #${p.featuredOrder}</span>`;
+                }
+
                 return `
                 <tr>
                     <td>${midiaHtml}</td>
                     <td style="font-weight: 600;">${p.name}</td>
                     <td style="color: var(--accent-blue); font-weight: 800;">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td>${ordemHtml}</td>
                     <td>
                         <button class="action-btn edit-btn" onclick="prepararEdicao('${p.id}')" title="Editar"><i class="fas fa-edit"></i></button>
                         <button class="action-btn delete-btn" onclick="excluirProduto('${p.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
@@ -185,10 +231,20 @@
             const id = document.getElementById('produto-id').value;
             const nome = document.getElementById('nome').value;
             const preco = parseFloat(document.getElementById('preco').value);
+            const categoria = document.getElementById('categoria').value;
+            const destaque = parseInt(document.getElementById('destaque').value) || 0;
+            
             const textMidias = document.getElementById('midias').value;
             const arrayMidias = textMidias.split('\n').map(link => link.trim()).filter(link => link !== '');
 
-            const produtoData = { name: nome, price: preco, media: arrayMidias };
+            // Agora enviamos categoria e destaque para a API
+            const produtoData = { 
+                name: nome, 
+                price: preco, 
+                media: arrayMidias,
+                category: categoria,
+                featuredOrder: destaque
+            };
 
             try {
                 const url = id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`;
@@ -218,7 +274,10 @@
             document.getElementById('produto-id').value = produto.id;
             document.getElementById('nome').value = produto.name;
             document.getElementById('preco').value = produto.price;
+            document.getElementById('categoria').value = produto.category || 'Outros';
+            document.getElementById('destaque').value = produto.featuredOrder || 0;
             document.getElementById('midias').value = produto.media ? produto.media.join('\n') : '';
+            
             document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editando Anúncio';
             document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Atualizar Produto';
             document.getElementById('btn-cancelar').style.display = 'inline-flex';
@@ -228,6 +287,8 @@
         function limparFormulario() {
             document.getElementById('product-form').reset();
             document.getElementById('produto-id').value = '';
+            document.getElementById('categoria').value = 'CPU Gamer'; // valor default
+            document.getElementById('destaque').value = '0';
             document.getElementById('form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Novo Anúncio';
             document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Salvar Produto';
             document.getElementById('btn-cancelar').style.display = 'none';
