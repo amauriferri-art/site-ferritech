@@ -55,7 +55,6 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Salva uma pequena marca de que você logou (opcional)
                     sessionStorage.setItem('isAdmin', 'true');
                     window.location.href = 'dashboard.html';
                 } else {
