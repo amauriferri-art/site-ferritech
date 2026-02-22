@@ -64,7 +64,6 @@
         .cart-input:focus { border-color: var(--accent-blue); }
         .calc-btn { padding: 10px 15px; background: var(--accent-blue); color: black; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         
-        /* Opções de Frete */
         .shipping-options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .shipping-card { background: #222; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .shipping-card:hover { border-color: var(--accent-blue); }
@@ -78,22 +77,62 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(3px); z-index: 900; opacity: 0; visibility: hidden; transition: 0.3s; }
         .overlay.active { opacity: 1; visibility: visible; }
         
-        /* Galeria Modal */
+        /* --- GALERIA E BOTÕES ELEGANTES --- */
         .gallery-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; }
         .gallery-container { display: flex; width: 95%; max-width: 1200px; height: 85vh; background: var(--bg-card); border-radius: 16px; overflow: hidden; box-shadow: 0 0 40px rgba(0,234,255,0.1); border: 1px solid #333; position: relative; }
-        .gallery-media-section { flex: 1.5; position: relative; background: #050505; display: flex; align-items: center; justify-content: center; }
+        .gallery-media-section { flex: 1.5; position: relative; background: #050505; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .gallery-content { width: 100%; height: 100%; }
         .gallery-content img, .gallery-content video, .gallery-content iframe { width: 100%; height: 100%; border: none; object-fit: contain; }
+        
         .gallery-info-section { flex: 1; padding: 40px 30px; display: flex; flex-direction: column; background: var(--bg-card); border-left: 1px solid #222; }
         .gallery-desc-box { color: #ccc; line-height: 1.6; font-size: 0.95rem; flex-grow: 1; white-space: pre-wrap; overflow-y: auto; padding-right: 10px; }
         .gallery-desc-box::-webkit-scrollbar { width: 6px; }
         .gallery-desc-box::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
-        .close-gallery { position: absolute; top: 20px; right: 30px; color: white; font-size: 2rem; cursor: pointer; z-index: 2001; }
         
+        .close-gallery { position: absolute; top: 20px; right: 30px; color: white; font-size: 2rem; cursor: pointer; z-index: 2001; transition: 0.3s; }
+        .close-gallery:hover { color: var(--accent-orange); transform: scale(1.1); }
+        
+        /* BOTÕES DE NAVEGAÇÃO ELEGANTES */
+        .nav-btn { 
+            position: absolute; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            background: rgba(20, 20, 20, 0.6); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px); /* Suporte Apple */
+            color: #fff; 
+            border: 1px solid rgba(255,255,255,0.15); 
+            width: 55px; 
+            height: 55px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.5rem; 
+            cursor: pointer; 
+            border-radius: 50%; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 2001; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .nav-btn:hover { 
+            background: var(--accent-blue); 
+            color: #000; 
+            border-color: var(--accent-blue); 
+            transform: translateY(-50%) scale(1.15); 
+            box-shadow: 0 0 25px rgba(0, 234, 255, 0.5);
+        }
+        .prev-btn { left: 20px; }
+        .next-btn { right: 20px; }
+        /* ---------------------------------- */
+
         @media (max-width: 900px) {
             .gallery-container { flex-direction: column; height: 95vh; }
             .gallery-media-section { flex: 1.2; }
             .gallery-info-section { flex: 1; padding: 25px 20px; border-left: none; border-top: 1px solid #222; }
+            .close-gallery { top: 10px; right: 20px; }
+            .nav-btn { width: 45px; height: 45px; font-size: 1.2rem; }
+            .prev-btn { left: 10px; }
+            .next-btn { right: 10px; }
         }
 
         footer { padding: 40px; text-align: center; border-top: 1px solid #222; color: #555; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px; align-items: center; }
@@ -143,7 +182,6 @@
         <div class="cart-items" id="cart-items-container"></div>
         
         <div class="cart-footer">
-            
             <div class="cart-input-group">
                 <label><i class="fas fa-truck"></i> Calcular Frete (Correios)</label>
                 <div class="cart-input-row">
@@ -169,7 +207,7 @@
             </div>
 
             <button onclick="finalizarCompra()" id="btn-finalizar" style="width:100%; padding:16px; background:#00eaff; color:black; border:none; border-radius:8px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; font-size: 1.1rem; margin-top: 5px;">
-                <i class="fas fa-lock" style="font-size: 1.2rem;"></i> PAGAR E FINALIZAR (Site Seguro)
+                <i class="fas fa-lock" style="font-size: 1.2rem;"></i> PAGAR E FINALIZAR
             </button>
         </div>
     </div>
@@ -214,11 +252,23 @@
             e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2];
         });
 
-        // (Funções getYouTubeId, getDriveId, mudarCategoria, carregarProdutos, renderizarProdutos, abrirGaleria e fecharGaleria omitidas para economizar espaço visual, mas elas permanecem idênticas ao código anterior no sistema real)
-        function getYouTubeId(url) { const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/); return (match && match[2].length === 11) ? match[2] : null; }
-        function getDriveId(url) { const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/); return match ? match[1] : null; }
+        function getYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
 
-        function mudarCategoria(categoria, elementoClicado) { categoriaAtual = categoria; document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active')); elementoClicado.classList.add('active'); renderizarProdutos(); }
+        function getDriveId(url) {
+            const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+            return match ? match[1] : null;
+        }
+
+        function mudarCategoria(categoria, elementoClicado) {
+            categoriaAtual = categoria;
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            elementoClicado.classList.add('active');
+            renderizarProdutos();
+        }
 
         async function carregarProdutos() {
             const cache = localStorage.getItem('ferritech_produtos_cache');
@@ -240,19 +290,23 @@
 
             container.innerHTML = produtosExibir.map(p => {
                 const mainMedia = p.media && p.media.length > 0 ? p.media[0] : 'https://via.placeholder.com/300?text=Sem+Foto';
+                const mediaCount = p.media ? p.media.length : 0;
+                
                 let mediaElement = '';
                 if (getYouTubeId(mainMedia)) mediaElement = `<img src="https://img.youtube.com/vi/${getYouTubeId(mainMedia)}/hqdefault.jpg">`;
                 else if (getDriveId(mainMedia)) mediaElement = `<iframe src="https://drive.google.com/file/d/${getDriveId(mainMedia)}/preview" frameborder="0" style="pointer-events: none;"></iframe>`;
-                else if (mainMedia.includes('streamable.com')) mediaElement = `<iframe src="https://streamable.com/e/${mainMedia.split('/').pop()}?muted=1&autoplay=1&controls=0&nocontrols=1" style="pointer-events: none;"></iframe>`;
+                else if (mainMedia.includes('streamable.com')) mediaElement = `<iframe src="https://streamable.com/e/${mainMedia.split('/').pop()}?muted=1&autoplay=1&controls=0&nocontrols=1" style="pointer-events: none; object-fit: cover; width: 100%; height: 100%;"></iframe>`;
                 else if (mainMedia.match(/\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video')) mediaElement = `<video src="${mainMedia}" autoplay muted loop playsinline style="pointer-events: none;"></video>`;
                 else mediaElement = `<img src="${mainMedia}">`;
 
-                let playIcon = getYouTubeId(mainMedia) ? `<i class="fas fa-play-circle play-icon"></i>` : '';
+                let playIcon = getYouTubeId(mainMedia) || mainMedia.includes('streamable') ? `<i class="fas fa-play-circle play-icon"></i>` : '';
+                let badge = mediaCount > 1 ? `<div class="media-badge"><i class="fas fa-images"></i> +${mediaCount - 1}</div>` : '';
+                
                 return `
                 <div class="product-card">
-                    <div class="product-img-container" onclick="abrirGaleria('${p.id}')">${mediaElement}${playIcon}</div>
+                    <div class="product-img-container" onclick="abrirGaleria('${p.id}')">${mediaElement}${playIcon}${badge}</div>
                     <div class="product-info">
-                        <div><div class="product-cat-label">${p.category||''}</div><h3 class="product-title">${p.name}</h3></div>
+                        <div><div class="product-cat-label">${p.category||'Outros'}</div><h3 class="product-title">${p.name}</h3></div>
                         <div class="price">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
                         <button class="add-btn" onclick="addToCart('${p.id}')"><i class="fas fa-cart-plus"></i> Comprar</button>
                     </div>
@@ -263,6 +317,7 @@
         function abrirGaleria(id) {
             const p = products.find(i => i.id == id);
             produtoAtualMedia = p.media; midiaAtualIndex = 0; 
+            document.getElementById('gallery-cat').innerText = p.category || 'Outros';
             document.getElementById('gallery-title').innerText = p.name;
             document.getElementById('gallery-price').innerText = `R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('gallery-desc').innerHTML = p.description ? p.description.replace(/\n/g, '<br>') : '';
@@ -271,26 +326,36 @@
         }
         function fecharGaleria() { document.getElementById('gallery-modal').style.display = 'none'; document.getElementById('gallery-content').innerHTML = ''; }
         function mudarMidia(direcao) { midiaAtualIndex += direcao; if(midiaAtualIndex < 0) midiaAtualIndex = produtoAtualMedia.length - 1; if(midiaAtualIndex >= produtoAtualMedia.length) midiaAtualIndex = 0; atualizarGaleriaVisual(); }
+        
+        // --- FUNÇÃO CORRIGIDA PARA LER STREAMABLE ---
         function atualizarGaleriaVisual() {
-            const m = produtoAtualMedia[midiaAtualIndex]; const c = document.getElementById('gallery-content');
-            if (getYouTubeId(m)) c.innerHTML = `<iframe src="https://www.youtube.com/embed/${getYouTubeId(m)}?autoplay=1" allowfullscreen></iframe>`;
-            else if (m.match(/\.(mp4|webm|ogg|mov)/i) || m.includes('video')) c.innerHTML = `<video src="${m}" autoplay controls></video>`;
-            else c.innerHTML = `<img src="${m}" style="object-fit: contain;">`;
+            const mediaUrl = produtoAtualMedia[midiaAtualIndex]; 
+            const container = document.getElementById('gallery-content');
+            const ytId = getYouTubeId(mediaUrl);
+            const driveId = getDriveId(mediaUrl);
+
+            if (ytId) {
+                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="width: 100%; height: 100%; border: none;"></iframe>`;
+            } else if (driveId) {
+                container.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" allowfullscreen style="width: 100%; height: 100%; border: none;"></iframe>`;
+            } else if (mediaUrl.includes('streamable.com')) {
+                const streamId = mediaUrl.split('/').pop();
+                container.innerHTML = `<iframe src="https://streamable.com/e/${streamId}?autoplay=1" allowfullscreen style="width: 100%; height: 100%; border: none;"></iframe>`;
+            } else if (mediaUrl.match(/\.(mp4|webm|ogg|mov)/i) || mediaUrl.includes('video')) {
+                container.innerHTML = `<video src="${mediaUrl}" autoplay controls playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>`;
+            } else {
+                container.innerHTML = `<img src="${mediaUrl}" alt="Mídia" style="width: 100%; height: 100%; object-fit: contain;">`;
+            }
         }
 
-        /* --- LÓGICA DE FRETE E CARRINHO --- */
         async function calcularFrete() {
             if(cart.length === 0) return alert("Adicione produtos primeiro!");
-            
             const cepDigitado = document.getElementById('cep-input').value;
             const btn = document.getElementById('btn-calcular-frete');
             const optionsBox = document.getElementById('shipping-options');
-            
             if(cepDigitado.length < 8) return alert("CEP Incompleto");
 
             btn.innerText = "Aguarde..."; btn.disabled = true;
-            
-            // Soma o peso do carrinho (Se não tiver peso, assume 1kg por item)
             const pesoTotal = cart.reduce((sum, item) => sum + (item.weight || 1.0), 0);
 
             try {
@@ -303,39 +368,34 @@
                 const data = await res.json();
                 
                 if (data.success && data.pac && data.sedex) {
-                    // Transforma o valor que vem dos correios com vírgula para número JS
                     const valorPac = parseFloat(data.pac.Valor.replace(',', '.'));
                     const valorSedex = parseFloat(data.sedex.Valor.replace(',', '.'));
 
                     optionsBox.innerHTML = `
                         <label class="shipping-card">
-                            <input type="radio" name="frete" value="${valorPac}" onchange="selecionarFrete(this, 'PAC (Correios)')">
+                            <input type="radio" name="frete" value="${valorPac}" onchange="selecionarFrete(this, 'PAC')">
                             <div style="flex-grow: 1;">
                                 <strong style="color: white; display: block;">PAC - R$ ${valorPac.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>
                                 <small style="color: #888;">Prazo: ${data.pac.PrazoEntrega} dias úteis</small>
                             </div>
                         </label>
                         <label class="shipping-card">
-                            <input type="radio" name="frete" value="${valorSedex}" onchange="selecionarFrete(this, 'SEDEX (Correios)')">
+                            <input type="radio" name="frete" value="${valorSedex}" onchange="selecionarFrete(this, 'SEDEX')">
                             <div style="flex-grow: 1;">
                                 <strong style="color: var(--accent-blue); display: block;">SEDEX - R$ ${valorSedex.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong>
                                 <small style="color: #888;">Prazo: ${data.sedex.PrazoEntrega} dias úteis</small>
                             </div>
                         </label>
                     `;
-                } else {
-                    optionsBox.innerHTML = `<span style="color: #ff4444">Não foi possível calcular o frete para este CEP.</span>`;
-                }
-            } catch(e) {
-                optionsBox.innerHTML = `<span style="color: #ff4444">Erro de conexão com os Correios.</span>`;
-            }
+                } else { optionsBox.innerHTML = `<span style="color: #ff4444">Não foi possível calcular o frete.</span>`; }
+            } catch(e) { optionsBox.innerHTML = `<span style="color: #ff4444">Erro de conexão com os Correios.</span>`; }
             btn.innerText = "Calcular"; btn.disabled = false;
         }
 
         function selecionarFrete(radioElement, nomeTransporte) {
             valorFreteSelecionado = parseFloat(radioElement.value);
             nomeFreteSelecionado = nomeTransporte;
-            atualizarCarrinho(); // Recalcula o total
+            atualizarCarrinho();
         }
 
         function addToCart(id) {
@@ -375,7 +435,6 @@
         function toggleCart() { document.getElementById('cart-modal').classList.toggle('open'); document.querySelector('.overlay').classList.toggle('active'); }
         function openCart() { document.getElementById('cart-modal').classList.add('open'); document.querySelector('.overlay').classList.add('active'); }
 
-        /* --- PAGAMENTO MERCADO PAGO + AVISO WHATSAPP --- */
         async function finalizarCompra() {
             if (cart.length === 0) return alert("O carrinho está vazio!");
             if (document.getElementById('shipping-options').innerHTML !== "" && valorFreteSelecionado === 0) {
@@ -387,7 +446,6 @@
             btnFinalizar.disabled = true;
 
             try {
-                // Chama a API que você acabou de subir para gerar o link do Mercado Pago
                 const res = await fetch(`${API_BASE_URL}/api/checkout`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -401,8 +459,6 @@
                 const data = await res.json();
 
                 if (data.success && data.init_point) {
-                    
-                    // 1. Gera a mensagem pro seu WhatsApp (Notificação do Pedido)
                     let itensTxt = cart.map(i => `✅ ${i.name}`).join('%0A');
                     const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
                     const totalGeral = subtotal + valorFreteSelecionado;
@@ -413,10 +469,8 @@
                     zapMsg += `*Total a Pagar:* R$ ${totalGeral.toFixed(2)}%0A%0A`;
                     zapMsg += `_O cliente já está na tela do Mercado Pago finalizando a compra via site._`;
 
-                    // Abre o WhatsApp para o cliente te notificar, em uma aba nova
                     window.open(`https://wa.me/5527995809348?text=${zapMsg}`, '_blank');
                     
-                    // 2. Redireciona a tela principal para a tela de pagamento do Mercado Pago
                     setTimeout(() => {
                         window.location.href = data.init_point;
                     }, 1000);
