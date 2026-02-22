@@ -92,8 +92,8 @@
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(3px); z-index: 900; opacity: 0; visibility: hidden; transition: 0.3s; }
         .overlay.active { opacity: 1; visibility: visible; }
         
-        /* GALERIA MODAL */
-        .gallery-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; }
+        /* GALERIA E MODAIS */
+        .gallery-modal, .auth-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .gallery-container { display: flex; width: 95%; max-width: 1200px; height: 85vh; background: var(--bg-card); border-radius: 16px; overflow: hidden; box-shadow: 0 0 40px rgba(0,234,255,0.1); border: 1px solid #333; position: relative; }
         .gallery-media-section { flex: 1.5; position: relative; background: #050505; display: flex; align-items: center; justify-content: center; overflow: hidden;}
         .gallery-content { width: 100%; height: 100%; }
@@ -102,24 +102,19 @@
         .gallery-desc-box { color: #ccc; line-height: 1.6; font-size: 0.95rem; flex-grow: 1; white-space: pre-wrap; overflow-y: auto; padding-right: 10px; }
         .gallery-desc-box::-webkit-scrollbar { width: 6px; }
         .gallery-desc-box::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
-        .close-gallery { position: absolute; top: 20px; right: 30px; color: white; font-size: 2rem; cursor: pointer; z-index: 2001; transition: 0.3s; }
-        .close-gallery:hover { color: var(--accent-orange); transform: scale(1.1); }
+        .close-gallery, .close-auth { position: absolute; top: 20px; right: 30px; color: white; font-size: 2rem; cursor: pointer; z-index: 2001; transition: 0.3s; }
+        .close-gallery:hover, .close-auth:hover { color: var(--accent-orange); transform: scale(1.1); }
         .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(20,20,20,0.6); backdrop-filter: blur(8px); color: white; border: 1px solid rgba(255,255,255,0.15); width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; border-radius: 50%; transition: all 0.3s; z-index: 2001; }
         .nav-btn:hover { background: var(--accent-blue); color: #000; border-color: var(--accent-blue); transform: translateY(-50%) scale(1.15); box-shadow: 0 0 25px rgba(0,234,255,0.5); }
         .prev-btn { left: 20px; } .next-btn { right: 20px; }
 
-        /* MODAIS EXTRAS: LOGIN E PAGAMENTO TRANSPARENTE */
-        .auth-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2500; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .auth-box { background: var(--bg-card); padding: 40px; border-radius: 16px; width: 90%; max-width: 400px; border: 1px solid #333; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #333; }
         .auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: #888; font-weight: 600; transition: 0.3s; }
         .auth-tab.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); }
         .auth-form { display: none; flex-direction: column; gap: 15px; }
         .auth-form.active { display: flex; }
-        .close-auth { position: absolute; top: 15px; right: 20px; color: #888; cursor: pointer; font-size: 1.2rem; }
-        .close-auth:hover { color: white; }
-
-        /* Estilo da tela do MP Brick (Branco para contraste e não quebrar design) */
+        
         .brick-box { background: #ffffff; padding: 20px; border-radius: 16px; width: 95%; max-width: 500px; position: relative; max-height: 90vh; overflow-y: auto; }
 
         @media (max-width: 900px) {
@@ -132,7 +127,6 @@
             .logo-text { font-size: 1.2rem; }
             .account-btn span { display: none; } 
         }
-
         footer { padding: 40px; text-align: center; border-top: 1px solid #222; color: #555; font-size: 0.85rem; display: flex; flex-direction: column; gap: 10px; align-items: center; }
         .admin-link { color: #444; text-decoration: none; font-size: 0.8rem; transition: 0.3s; }
         .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: #888; }
@@ -180,7 +174,7 @@
 
     <div class="auth-modal" id="auth-modal">
         <div class="auth-box">
-            <i class="fas fa-times close-auth" onclick="fecharModalAuth()"></i>
+            <i class="fas fa-times close-auth" onclick="fecharModalAuth()" style="font-size: 1.5rem; top: 15px; right: 20px;"></i>
             <div class="auth-tabs">
                 <div class="auth-tab active" onclick="mudarAbaAuth('login', this)">Entrar</div>
                 <div class="auth-tab" onclick="mudarAbaAuth('register', this)">Criar Conta</div>
@@ -204,6 +198,29 @@
             <i class="fas fa-times" onclick="fecharBrickModal()" style="color: #000; position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer;"></i>
             <h3 style="color: #000; text-align: center; margin-bottom: 20px; font-family: 'Montserrat', sans-serif;">Pagamento Seguro</h3>
             <div id="paymentBrick_container"></div>
+        </div>
+    </div>
+
+    <div class="auth-modal" id="pix-modal" style="z-index: 4000;">
+        <div class="auth-box" style="text-align: center;">
+            <h3 style="color: var(--accent-blue); margin-bottom: 10px; font-family: 'Orbitron', sans-serif;"><i class="fab fa-pix"></i> Pagamento via PIX</h3>
+            <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 20px;">Escaneie o QR Code ou copie o código abaixo. O pedido será aprovado automaticamente no sistema após o pagamento.</p>
+            
+            <img id="pix-qr-img" src="" alt="QR Code PIX" style="width: 200px; height: 200px; border-radius: 8px; margin-bottom: 20px; border: 2px solid var(--accent-blue); padding: 5px; background: white;">
+            
+            <div class="cart-input-group" style="text-align: left; margin-bottom: 15px;">
+                <label>Código PIX (Copia e Cola)</label>
+                <div class="cart-input-row">
+                    <input type="text" id="pix-copy-text" class="cart-input" readonly>
+                    <button class="calc-btn" onclick="copiarPix()"><i class="fas fa-copy"></i> Copiar</button>
+                </div>
+            </div>
+
+            <div style="font-size: 1.2rem; font-weight: bold; color: var(--accent-orange); margin-bottom: 20px;">
+                Expira em: <span id="pix-timer">30:00</span>
+            </div>
+
+            <button class="add-btn" onclick="window.location.href='conta.html'" style="width: 100%;">Já Paguei / Ver Meus Pedidos</button>
         </div>
     </div>
 
@@ -276,16 +293,14 @@
     </footer>
 
     <script>
-        // =========================================================
         // ✅ CHAVE PÚBLICA CORRETA INSERIDA AQUI:
-        // =========================================================
         const MP_PUBLIC_KEY = 'APP_USR-798350a7-118e-436f-8377-e30e7cb5d72d'; 
         
         const API_BASE_URL = 'https://ferritech-api.onrender.com'; 
         let cart = [], products = [], categoriaAtual = 'Destaques', midiaAtualIndex = 0, produtoAtualMedia = [];
         let modoEntrega = 'pickup', valorFreteSelecionado = 0, nomeFreteSelecionado = "Retirada: Rua Nilo Ferri, 25, Castelo Branco, Cariacica";
+        let pixInterval;
 
-        // INICIALIZA MERCADO PAGO
         const mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'pt-BR' });
         let brickController = null;
 
@@ -314,7 +329,12 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/api/login-cliente`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({email, senha}) });
                 const data = await res.json();
-                if(data.success) { sessionStorage.setItem('clienteId', data.userId); sessionStorage.setItem('clienteNome', data.nome); fecharModalAuth(); atualizarInterfaceConta(); if(cart.length > 0) openCart(); } 
+                if(data.success) { 
+                    sessionStorage.setItem('clienteId', data.userId); 
+                    sessionStorage.setItem('clienteNome', data.nome); 
+                    sessionStorage.setItem('clienteEmail', data.email); // Salva email para o checkout
+                    fecharModalAuth(); atualizarInterfaceConta(); if(cart.length > 0) openCart(); 
+                } 
                 else alert(data.message);
             } catch(err) { alert("Erro de conexão."); }
         }
@@ -325,7 +345,12 @@
             try {
                 const res = await fetch(`${API_BASE_URL}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({nome, email, senha}) });
                 const data = await res.json();
-                if(data.success) { sessionStorage.setItem('clienteId', data.userId); sessionStorage.setItem('clienteNome', data.nome); fecharModalAuth(); atualizarInterfaceConta(); alert("Conta criada!"); if(cart.length > 0) openCart(); } 
+                if(data.success) { 
+                    sessionStorage.setItem('clienteId', data.userId); 
+                    sessionStorage.setItem('clienteNome', data.nome); 
+                    sessionStorage.setItem('clienteEmail', data.email);
+                    fecharModalAuth(); atualizarInterfaceConta(); alert("Conta criada!"); if(cart.length > 0) openCart(); 
+                } 
                 else alert(data.message);
             } catch(err) { alert("Erro de conexão."); }
         }
@@ -337,7 +362,6 @@
 
         function getYouTubeId(url) { const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/); return (match && match[2].length === 11) ? match[2] : null; }
         function getDriveId(url) { const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/); return match ? match[1] : null; }
-
         function mudarCategoria(categoria, elementoClicado) { categoriaAtual = categoria; document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active')); elementoClicado.classList.add('active'); renderizarProdutos(); }
 
         async function carregarProdutos() {
@@ -463,16 +487,48 @@
         function toggleCart() { document.getElementById('cart-modal').classList.toggle('open'); document.querySelector('.overlay').classList.toggle('active'); }
         function openCart() { document.getElementById('cart-modal').classList.add('open'); document.querySelector('.overlay').classList.add('active'); }
 
-        /* --- CHECKOUT TRANSPARENTE (BRICKS) --- */
+        // --- SISTEMA PIX E TIMER ---
+        function copiarPix() {
+            const pixText = document.getElementById('pix-copy-text');
+            pixText.select();
+            document.execCommand('copy');
+            alert('Código PIX copiado com sucesso!');
+        }
+
+        function startPixTimer() {
+            let tempo = 30 * 60; // 30 minutos
+            const timerEl = document.getElementById('pix-timer');
+            clearInterval(pixInterval);
+            pixInterval = setInterval(() => {
+                let minutos = Math.floor(tempo / 60);
+                let segundos = tempo % 60;
+                timerEl.innerText = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+                tempo--;
+                if (tempo < 0) { clearInterval(pixInterval); timerEl.innerText = "Expirado"; }
+            }, 1000);
+        }
+
+        /* --- CHECKOUT TRANSPARENTE --- */
         async function abrirBrickModal(totalValue) {
             document.getElementById('mp-brick-modal').style.display = 'flex';
             if(brickController) brickController.unmount();
             const bricksBuilder = mp.bricks();
+            
+            // Pega o email do cliente que foi salvo no login para enviar ao MP
+            const clienteEmail = sessionStorage.getItem('clienteEmail') || "";
+
             const settings = {
-                initialization: { amount: totalValue },
+                initialization: { 
+                    amount: totalValue,
+                    payer: { email: clienteEmail } 
+                },
                 customization: {
                     visual: { style: { theme: 'default' } },
-                    paymentMethods: { creditCard: "all", pix: "all" },
+                    paymentMethods: { 
+                        creditCard: "all", 
+                        pix: "all",
+                        mercadoPago: "all" // ATIVA A OPÇÃO DE USAR CARTÃO SALVO NA CARTEIRA DO MP
+                    },
                 },
                 callbacks: {
                     onReady: () => { console.log('Brick pronto'); },
@@ -480,6 +536,11 @@
                         return new Promise((resolve, reject) => {
                             const userId = sessionStorage.getItem('clienteId');
                             const userName = sessionStorage.getItem('clienteNome');
+                            
+                            // Garante que o email vá no formData
+                            if (!formData.payer) formData.payer = {};
+                            if (!formData.payer.email) formData.payer.email = clienteEmail;
+
                             fetch(`${API_BASE_URL}/api/process_payment`, {
                                 method: "POST", headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ paymentData: formData, items: cart, shippingPrice: valorFreteSelecionado, shippingName: nomeFreteSelecionado, userId: userId, userName: userName })
@@ -488,9 +549,20 @@
                             .then(data => {
                                 resolve();
                                 if (data.success) {
-                                    if (data.pixUrl) window.location.href = data.pixUrl; // Tela segura do QR Code MP
-                                    else { alert("Pagamento processado!"); window.location.href = 'conta.html'; } 
-                                } else { alert("Erro ao processar pagamento."); }
+                                    if (data.isPix && data.qrCode) {
+                                        fecharBrickModal();
+                                        document.getElementById('pix-qr-img').src = `data:image/jpeg;base64,${data.qrCodeBase64}`;
+                                        document.getElementById('pix-copy-text').value = data.qrCode;
+                                        document.getElementById('pix-modal').style.display = 'flex';
+                                        startPixTimer();
+                                        cart = []; // Esvazia o carrinho
+                                        atualizarCarrinho();
+                                    } else { 
+                                        alert("Pagamento processado com sucesso!"); 
+                                        cart = [];
+                                        window.location.href = 'conta.html'; 
+                                    } 
+                                } else { alert("Erro ao processar pagamento. Verifique os dados."); }
                             }).catch(() => { reject(); alert("Falha na conexão."); });
                         });
                     },
@@ -504,7 +576,7 @@
 
         async function iniciarCheckout() {
             const userId = sessionStorage.getItem('clienteId');
-            if (!userId) { toggleCart(); abrirModalAuth(); alert("Faça login para finalizar."); return; }
+            if (!userId) { toggleCart(); abrirModalAuth(); alert("Faça login para finalizar a compra."); return; }
             if (cart.length === 0) return alert("O carrinho está vazio!");
             if (modoEntrega === 'correios' && valorFreteSelecionado === 0) return alert("Calcule e selecione o frete!");
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0);
