@@ -39,12 +39,15 @@
         th, td { padding: 15px 20px; border-bottom: 1px solid #222; vertical-align: middle; }
         th { background: #111; color: var(--accent-blue); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
         
-        .status-select { background: #222; color: white; border: 1px solid #444; padding: 5px; border-radius: 4px; }
+        .status-select { background: #222; color: white; border: 1px solid #444; padding: 5px; border-radius: 4px; margin-bottom: 5px;}
         .btn-status { background: #444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: 5px;}
         .btn-status:hover { background: var(--success); }
         
         .btn-print { background: #444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-top: 5px; display: inline-flex; align-items: center; gap: 5px;}
         .btn-print:hover { background: #fff; color: #000; }
+
+        .rastreio-input { background: #111; color: var(--accent-orange); border: 1px solid #555; padding: 6px; border-radius: 4px; width: 160px; font-size: 0.8rem; text-transform: uppercase;}
+        .btn-rastreio { background: var(--accent-blue); color: black; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;}
 
         .media-preview-container { width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; position: relative;}
         .media-preview-container img { width: 100%; height: 100%; object-fit: cover; }
@@ -64,7 +67,6 @@
     </header>
 
     <div class="admin-container">
-        
         <div class="admin-tabs">
             <button class="tab-btn active" onclick="mudarAba('tab-produtos')"><i class="fas fa-box"></i> Gestão de Anúncios</button>
             <button class="tab-btn" onclick="mudarAba('tab-pedidos'); carregarPedidos();"><i class="fas fa-shopping-cart"></i> Gestão de Pedidos</button>
@@ -98,7 +100,6 @@
                     </div>
                 </form>
             </div>
-
             <div class="table-responsive">
                 <table>
                     <thead><tr><th>Mídia</th><th>Nome</th><th>Preço/Estoque</th><th>Ações</th></tr></thead>
@@ -116,7 +117,7 @@
                             <th>Data / Cliente</th>
                             <th>Itens</th>
                             <th>Entrega / Endereço</th>
-                            <th>Status (Alterar)</th>
+                            <th>Status e Rastreio</th>
                         </tr>
                     </thead>
                     <tbody id="lista-pedidos-admin">
@@ -125,7 +126,6 @@
                 </table>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -142,7 +142,6 @@
 
         function fazerLogout() { sessionStorage.removeItem('isAdmin'); window.location.href = 'login.html'; }
 
-        // --- GESTÃO DE PRODUTOS ---
         async function carregarProdutos() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/produtos`);
@@ -167,11 +166,10 @@
             }).join('');
         }
 
-        // --- GESTÃO DE PEDIDOS E ETIQUETA ---
         async function carregarPedidos() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/admin/pedidos`);
-                listaDePedidos = await res.json(); // Salva os pedidos numa variavel global
+                listaDePedidos = await res.json();
                 const tbody = document.getElementById('lista-pedidos-admin');
                 
                 tbody.innerHTML = listaDePedidos.map(p => {
@@ -180,14 +178,21 @@
                     
                     let enderecoStr = '<span style="color:#ff8c00">Retirada no Local</span>';
                     let btnEtiqueta = '';
+                    let rastreioInputHtml = '';
                     
                     if (p.endereco) {
                         enderecoStr = `${p.endereco.rua}, ${p.endereco.numero} ${p.endereco.complemento ? ' - '+p.endereco.complemento : ''}<br>${p.endereco.bairro}, ${p.endereco.cidade}-${p.endereco.uf}<br>CEP: ${p.endereco.cep}`;
                         btnEtiqueta = `<br><button class="btn-print" onclick="imprimirEtiqueta('${p._id}')"><i class="fas fa-print"></i> Imprimir Etiqueta</button>`;
+                        
+                        // CAIXA DE RASTREIO - Só aparece se for Correios
+                        rastreioInputHtml = `
+                        <div style="margin-top: 10px; border-top: 1px dashed #333; padding-top: 10px;">
+                            <input type="text" id="rastreio-${p._id}" class="rastreio-input" placeholder="Cod. Rastreio" value="${p.codigoRastreio || ''}">
+                            <button class="btn-rastreio" onclick="enviarRastreio('${p._id}')">Enviar Rastreio</button>
+                        </div>`;
                     }
                     
-                    // Colore o status de Verde se já foi Pago
-                    const colorStatus = p.status === 'Pago' ? 'color: #00c851; font-weight: bold;' : '';
+                    const colorStatus = p.status === 'Pago' ? 'color: #00c851; font-weight: bold;' : (p.status === 'Enviado' ? 'color: var(--accent-orange); font-weight: bold;' : '');
 
                     return `
                     <tr>
@@ -196,13 +201,16 @@
                         <td style="font-size:0.85rem;"><strong style="color:var(--accent-blue)">R$ ${p.total.toFixed(2)}</strong><br><br>${enderecoStr}</td>
                         <td>
                             <div style="margin-bottom: 5px; ${colorStatus}">Atual: ${p.status}</div>
-                            <select id="status-${p._id}" class="status-select">
-                                <option value="Pendente" ${p.status === 'Pendente' ? 'selected' : ''}>Pendente (Aguardando)</option>
-                                <option value="Pago" ${p.status === 'Pago' ? 'selected' : ''}>Pago</option>
-                                <option value="Enviado" ${p.status === 'Enviado' ? 'selected' : ''}>Enviado / Pronto P/ Retirar</option>
-                                <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                            </select>
-                            <button class="btn-status" onclick="atualizarStatus('${p._id}')">OK</button>
+                            <div style="display:flex; align-items:center;">
+                                <select id="status-${p._id}" class="status-select">
+                                    <option value="Pendente" ${p.status === 'Pendente' ? 'selected' : ''}>Pendente (Aguardando)</option>
+                                    <option value="Pago" ${p.status === 'Pago' ? 'selected' : ''}>Pago</option>
+                                    <option value="Enviado" ${p.status === 'Enviado' ? 'selected' : ''}>Enviado / Pronto P/ Retirar</option>
+                                    <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                                </select>
+                                <button class="btn-status" onclick="atualizarStatus('${p._id}')">OK</button>
+                            </div>
+                            ${rastreioInputHtml}
                             ${btnEtiqueta}
                         </td>
                     </tr>`;
@@ -220,118 +228,35 @@
             } catch(e) { alert("Erro ao atualizar."); }
         }
 
-        // === GERADOR DE ETIQUETA DE ENVIO ===
+        // FUNÇÃO QUE MANDA O RASTREIO PARA O BANCO DE DADOS
+        async function enviarRastreio(pedidoId) {
+            const codigo = document.getElementById(`rastreio-${pedidoId}`).value;
+            if(!codigo) return alert("Digite o código de rastreio primeiro.");
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/admin/pedidos/${pedidoId}/rastreio`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rastreio: codigo })
+                });
+                if(res.ok) { 
+                    alert("Rastreio salvo! Status alterado para Enviado automaticamente."); 
+                    carregarPedidos(); 
+                }
+            } catch(e) { alert("Erro ao salvar rastreio."); }
+        }
+
         function imprimirEtiqueta(pedidoId) {
             const pedido = listaDePedidos.find(p => p._id === pedidoId);
             if (!pedido || !pedido.endereco) return alert("Pedido não possui endereço.");
 
             const htmlEtiqueta = `
-            <html>
-            <head>
-                <title>Etiqueta de Envio - ${pedido.nomeCliente}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; color: #000; }
-                    .etiqueta { border: 2px solid #000; width: 10cm; height: 14cm; padding: 20px; box-sizing: border-box; position: relative; margin: 0 auto;}
-                    .titulo { font-size: 18px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px;}
-                    .destinatario { border: 2px dashed #000; padding: 15px; border-radius: 8px; margin-bottom: 20px;}
-                    .destinatario h3 { margin: 0 0 10px 0; font-size: 20px; text-transform: uppercase; }
-                    .destinatario p { margin: 5px 0; font-size: 16px; font-weight: bold; }
-                    .remetente { font-size: 12px; color: #333; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px;}
-                    .peso { font-size: 14px; position: absolute; bottom: 20px; right: 20px; font-weight: bold;}
-                    .aviso { text-align: center; color: red; margin-top: 20px; font-size: 12px;}
-                    @media print { .aviso { display: none; } }
-                </style>
-            </head>
-            <body>
-                <p class="aviso">Pressione Ctrl+P para imprimir. Cole esta etiqueta na caixa.</p>
-                <div class="etiqueta">
-                    <div class="titulo">DESTINATÁRIO</div>
-                    <div class="destinatario">
-                        <h3>${pedido.nomeCliente}</h3>
-                        <p>${pedido.endereco.rua}, Nº ${pedido.endereco.numero}</p>
-                        <p>${pedido.endereco.complemento ? 'Comp: ' + pedido.endereco.complemento : ''}</p>
-                        <p>Bairro: ${pedido.endereco.bairro}</p>
-                        <p>${pedido.endereco.cidade} - ${pedido.endereco.uf}</p>
-                        <p style="font-size: 22px; margin-top: 15px;">CEP: ${pedido.endereco.cep}</p>
-                    </div>
-
-                    <div class="remetente">
-                        <strong>REMETENTE:</strong><br>
-                        FerriTech - Alta Performance<br>
-                        Rua Nilo Ferri, 25 - Castelo Branco<br>
-                        Cariacica - ES | CEP: 29140-878<br>
-                        Ref do Pedido: #${pedido._id.slice(-8)}
-                    </div>
-                </div>
-                <script>
-                    window.onload = function() { window.print(); }
-                <\/script>
-            </body>
-            </html>
-            `;
-
-            const win = window.open('', '_blank');
-            win.document.write(htmlEtiqueta);
-            win.document.close();
+            <html><head><title>Etiqueta de Envio - ${pedido.nomeCliente}</title><style>body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; color: #000; } .etiqueta { border: 2px solid #000; width: 10cm; height: 14cm; padding: 20px; box-sizing: border-box; position: relative; margin: 0 auto;} .titulo { font-size: 18px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px;} .destinatario { border: 2px dashed #000; padding: 15px; border-radius: 8px; margin-bottom: 20px;} .destinatario h3 { margin: 0 0 10px 0; font-size: 20px; text-transform: uppercase; } .destinatario p { margin: 5px 0; font-size: 16px; font-weight: bold; } .remetente { font-size: 12px; color: #333; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px;} .aviso { text-align: center; color: red; margin-top: 20px; font-size: 12px;} @media print { .aviso { display: none; } }</style></head><body><p class="aviso">Pressione Ctrl+P para imprimir. Cole esta etiqueta na caixa.</p><div class="etiqueta"><div class="titulo">DESTINATÁRIO</div><div class="destinatario"><h3>${pedido.nomeCliente}</h3><p>${pedido.endereco.rua}, Nº ${pedido.endereco.numero}</p><p>${pedido.endereco.complemento ? 'Comp: ' + pedido.endereco.complemento : ''}</p><p>Bairro: ${pedido.endereco.bairro}</p><p>${pedido.endereco.cidade} - ${pedido.endereco.uf}</p><p style="font-size: 22px; margin-top: 15px;">CEP: ${pedido.endereco.cep}</p></div><div class="remetente"><strong>REMETENTE:</strong><br>FerriTech - Alta Performance<br>Rua Nilo Ferri, 25 - Castelo Branco<br>Cariacica - ES | CEP: 29140-878<br>Ref do Pedido: #${pedido._id.slice(-8)}</div></div><script>window.onload = function() { window.print(); }<\/script></body></html>`;
+            const win = window.open('', '_blank'); win.document.write(htmlEtiqueta); win.document.close();
         }
 
-        // --- SALVAR, EDITAR E EXCLUIR PRODUTOS ---
-        async function salvarProduto(e) {
-            e.preventDefault();
-            const id = document.getElementById('produto-id').value;
-            const nome = document.getElementById('nome').value;
-            const preco = parseFloat(document.getElementById('preco').value);
-            const categoria = document.getElementById('categoria').value;
-            const destaque = parseInt(document.getElementById('destaque').value) || 0;
-            const peso = parseFloat(document.getElementById('peso').value) || 1.0; 
-            const estoque = parseInt(document.getElementById('estoque').value) || 0;
-            const descricao = document.getElementById('descricao').value;
-            const arrayMidias = document.getElementById('midias').value.split('\n').map(link => link.trim()).filter(link => link !== '');
-
-            const produtoData = { name: nome, price: preco, media: arrayMidias, category: categoria, featuredOrder: destaque, description: descricao, weight: peso, stock: estoque };
-
-            try {
-                const res = await fetch(id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`, {
-                    method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(produtoData)
-                });
-                if (res.ok) { alert("Salvo com sucesso!"); limparFormulario(); carregarProdutos(); } 
-                else alert("Erro ao salvar produto no servidor.");
-            } catch (error) { alert("Erro de conexão com a API."); }
-        }
-
-        function prepararEdicao(id) {
-            const p = produtos.find(item => item.id == id);
-            if (!p) return;
-            document.getElementById('produto-id').value = p.id;
-            document.getElementById('nome').value = p.name;
-            document.getElementById('preco').value = p.price;
-            document.getElementById('categoria').value = p.category || 'Outros';
-            document.getElementById('destaque').value = p.featuredOrder || 0;
-            document.getElementById('peso').value = p.weight || 1.0; 
-            document.getElementById('estoque').value = p.stock !== undefined ? p.stock : 1; 
-            document.getElementById('descricao').value = p.description || ''; 
-            document.getElementById('midias').value = p.media ? p.media.join('\n') : '';
-            
-            document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editando Anúncio';
-            document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Atualizar Produto';
-            document.getElementById('btn-cancelar').style.display = 'inline-flex';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function limparFormulario() {
-            document.getElementById('product-form').reset();
-            document.getElementById('produto-id').value = '';
-            document.getElementById('categoria').value = 'CPU Gamer';
-            document.getElementById('btn-cancelar').style.display = 'none';
-        }
-
-        async function excluirProduto(id) {
-            if (!confirm("Tem certeza que deseja excluir este anúncio permanentemente?")) return;
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, { method: 'DELETE' });
-                if (res.ok) carregarProdutos(); else alert("Erro ao excluir.");
-            } catch (error) { alert("Erro de conexão."); }
-        }
+        async function salvarProduto(e) { e.preventDefault(); const id = document.getElementById('produto-id').value; const nome = document.getElementById('nome').value; const preco = parseFloat(document.getElementById('preco').value); const categoria = document.getElementById('categoria').value; const destaque = parseInt(document.getElementById('destaque').value) || 0; const peso = parseFloat(document.getElementById('peso').value) || 1.0; const estoque = parseInt(document.getElementById('estoque').value) || 0; const descricao = document.getElementById('descricao').value; const arrayMidias = document.getElementById('midias').value.split('\n').map(link => link.trim()).filter(link => link !== ''); const produtoData = { name: nome, price: preco, media: arrayMidias, category: categoria, featuredOrder: destaque, description: descricao, weight: peso, stock: estoque }; try { const res = await fetch(id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(produtoData) }); if (res.ok) { alert("Salvo com sucesso!"); limparFormulario(); carregarProdutos(); } else alert("Erro ao salvar produto no servidor."); } catch (error) { alert("Erro de conexão com a API."); } }
+        function prepararEdicao(id) { const p = produtos.find(item => item.id == id); if (!p) return; document.getElementById('produto-id').value = p.id; document.getElementById('nome').value = p.name; document.getElementById('preco').value = p.price; document.getElementById('categoria').value = p.category || 'Outros'; document.getElementById('destaque').value = p.featuredOrder || 0; document.getElementById('peso').value = p.weight || 1.0; document.getElementById('estoque').value = p.stock !== undefined ? p.stock : 1; document.getElementById('descricao').value = p.description || ''; document.getElementById('midias').value = p.media ? p.media.join('\n') : ''; document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editando Anúncio'; document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Atualizar Produto'; document.getElementById('btn-cancelar').style.display = 'inline-flex'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function limparFormulario() { document.getElementById('product-form').reset(); document.getElementById('produto-id').value = ''; document.getElementById('categoria').value = 'CPU Gamer'; document.getElementById('btn-cancelar').style.display = 'none'; }
+        async function excluirProduto(id) { if (!confirm("Tem certeza que deseja excluir este anúncio permanentemente?")) return; try { const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, { method: 'DELETE' }); if (res.ok) carregarProdutos(); else alert("Erro ao excluir."); } catch (error) { alert("Erro de conexão."); } }
 
         carregarProdutos();
     </script>
