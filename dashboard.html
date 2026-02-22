@@ -15,23 +15,15 @@
     
     <style>
         :root {
-            --bg-dark: #0f0f0f;
-            --bg-card: #181818;
-            --accent-blue: #00eaff;
-            --accent-orange: #ff8c00;
-            --danger: #ff4444;
-            --success: #00c851;
-            --text-main: #ffffff;
+            --bg-dark: #0f0f0f; --bg-card: #181818;
+            --accent-blue: #00eaff; --accent-orange: #ff8c00;
+            --danger: #ff4444; --success: #00c851; --text-main: #ffffff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
-        
         body { background-color: var(--bg-dark); color: var(--text-main); }
 
-        header {
-            background: rgba(0, 0, 0, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
-        }
+        header { background: rgba(0, 0, 0, 0.9); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
         .logo-text { font-size: 1.5rem; font-weight: 800; color: white; }
         .logo-text span { color: var(--accent-blue); }
         .header-links { display: flex; gap: 20px; }
@@ -40,7 +32,6 @@
         .logout-link:hover { color: var(--danger); }
 
         .admin-container { padding: 40px 5%; max-width: 1200px; margin: 0 auto; }
-        
         .form-card { background: var(--bg-card); padding: 30px; border-radius: 12px; border: 1px solid #333; margin-bottom: 40px; }
         
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -125,6 +116,11 @@
                     </div>
                     
                     <div class="form-group full-width">
+                        <label>Descrição do Produto</label>
+                        <textarea id="descricao" class="form-control" style="min-height: 150px;" placeholder="Detalhes, especificações e configurações do produto..."></textarea>
+                    </div>
+                    
+                    <div class="form-group full-width">
                         <label>Links das Mídias (Um link por linha)</label>
                         <textarea id="midias" class="form-control" required placeholder="https://i.ibb.co/...&#10;https://youtube.com/watch?v=..."></textarea>
                     </div>
@@ -161,8 +157,8 @@
         let produtos = [];
 
         function fazerLogout() {
-            sessionStorage.removeItem('isAdmin'); // Tira o crachá
-            window.location.href = 'login.html';  // Manda pro login
+            sessionStorage.removeItem('isAdmin');
+            window.location.href = 'login.html';
         }
 
         function getYouTubeId(url) {
@@ -182,7 +178,6 @@
                 if (!res.ok) throw new Error("Erro ao buscar dados");
                 produtos = await res.json();
                 
-                // Organiza a tabela para mostrar os destaques primeiro
                 produtos.sort((a, b) => {
                     const orderA = a.featuredOrder > 0 ? a.featuredOrder : 9999;
                     const orderB = b.featuredOrder > 0 ? b.featuredOrder : 9999;
@@ -220,7 +215,6 @@
                     }
                 }
 
-                // Definir exibição da categoria e ordem
                 const categoriaStr = p.category || 'Outros';
                 let ordemHtml = `<span class="badge">${categoriaStr}</span>`;
                 if (p.featuredOrder > 0) {
@@ -249,17 +243,18 @@
             const preco = parseFloat(document.getElementById('preco').value);
             const categoria = document.getElementById('categoria').value;
             const destaque = parseInt(document.getElementById('destaque').value) || 0;
+            const descricao = document.getElementById('descricao').value; // Puxa a descrição do HTML
             
             const textMidias = document.getElementById('midias').value;
             const arrayMidias = textMidias.split('\n').map(link => link.trim()).filter(link => link !== '');
 
-            // Agora enviamos categoria e destaque para a API
             const produtoData = { 
                 name: nome, 
                 price: preco, 
                 media: arrayMidias,
                 category: categoria,
-                featuredOrder: destaque
+                featuredOrder: destaque,
+                description: descricao // Envia para a API
             };
 
             try {
@@ -292,6 +287,7 @@
             document.getElementById('preco').value = produto.price;
             document.getElementById('categoria').value = produto.category || 'Outros';
             document.getElementById('destaque').value = produto.featuredOrder || 0;
+            document.getElementById('descricao').value = produto.description || ''; // Preenche a descrição
             document.getElementById('midias').value = produto.media ? produto.media.join('\n') : '';
             
             document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editando Anúncio';
@@ -303,8 +299,9 @@
         function limparFormulario() {
             document.getElementById('product-form').reset();
             document.getElementById('produto-id').value = '';
-            document.getElementById('categoria').value = 'CPU Gamer'; // valor default
+            document.getElementById('categoria').value = 'CPU Gamer';
             document.getElementById('destaque').value = '0';
+            document.getElementById('descricao').value = ''; // Limpa a descrição
             document.getElementById('form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Novo Anúncio';
             document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Salvar Produto';
             document.getElementById('btn-cancelar').style.display = 'none';
