@@ -6,9 +6,7 @@
     <title>FerriTech | Painel Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
-    <script>
-        if (sessionStorage.getItem('isAdmin') !== 'true') window.location.href = 'login.html';
-    </script>
+    <script>if (sessionStorage.getItem('isAdmin') !== 'true') window.location.href = 'login.html';</script>
     <style>
         :root { --bg-dark: #0f0f0f; --bg-card: #181818; --accent-blue: #00eaff; --accent-orange: #ff8c00; --danger: #ff4444; --success: #00c851; --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
@@ -46,8 +44,9 @@
         .edit-btn:hover { color: #cc7000; }
         .delete-btn { color: var(--danger); }
         .delete-btn:hover { color: #cc0000; }
-        .badge { background: #333; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge { background: #333; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; display: inline-block; margin-bottom: 4px; }
         .badge-destaque { background: var(--accent-orange); color: #000; }
+        .badge-estoque { background: var(--accent-blue); color: #000; }
         @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -92,23 +91,28 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Posição nos Destaques (0 = Não destacar)</label>
-                        <input type="number" id="destaque" class="form-control" value="0" min="0" required>
+                        <label>Estoque (Quantidade disponível)</label>
+                        <input type="number" id="estoque" class="form-control" value="1" min="0" required>
                     </div>
 
                     <div class="form-group">
                         <label>Peso do Pacote (Kg)</label>
-                        <input type="number" id="peso" class="form-control" step="0.01" value="1.00" required placeholder="Ex: 1.5 para 1,5kg">
+                        <input type="number" id="peso" class="form-control" step="0.01" value="1.00" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Posição nos Destaques (0 = Não destacar)</label>
+                        <input type="number" id="destaque" class="form-control" value="0" min="0" required>
                     </div>
                     
                     <div class="form-group full-width">
                         <label>Descrição do Produto</label>
-                        <textarea id="descricao" class="form-control" style="min-height: 150px;" placeholder="Detalhes, especificações e configurações do produto..."></textarea>
+                        <textarea id="descricao" class="form-control" style="min-height: 150px;" placeholder="Detalhes, especificações..."></textarea>
                     </div>
                     
                     <div class="form-group full-width">
                         <label>Links das Mídias (Um link por linha)</label>
-                        <textarea id="midias" class="form-control" required placeholder="https://i.ibb.co/...&#10;https://youtube.com/watch?v=..."></textarea>
+                        <textarea id="midias" class="form-control" required placeholder="https://..."></textarea>
                     </div>
                 </div>
 
@@ -126,7 +130,7 @@
                     <tr>
                         <th>Mídia</th>
                         <th>Nome</th>
-                        <th>Preço / Peso</th>
+                        <th>Preço / Qtd</th>
                         <th>Categoria / Ordem</th>
                         <th>Ações</th>
                     </tr>
@@ -142,85 +146,59 @@
         const API_BASE_URL = 'https://ferritech-api.onrender.com';
         let produtos = [];
 
-        function fazerLogout() {
-            sessionStorage.removeItem('isAdmin');
-            window.location.href = 'login.html';
-        }
-
-        function getYouTubeId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        function getDriveId(url) {
-            const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-            return match ? match[1] : null;
-        }
+        function fazerLogout() { sessionStorage.removeItem('isAdmin'); window.location.href = 'login.html'; }
+        function getYouTubeId(url) { const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/); return (match && match[2].length === 11) ? match[2] : null; }
+        function getDriveId(url) { const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/); return match ? match[1] : null; }
 
         async function carregarProdutos() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/produtos`);
-                if (!res.ok) throw new Error("Erro ao buscar dados");
+                if (!res.ok) throw new Error("Erro");
                 produtos = await res.json();
-                
                 produtos.sort((a, b) => {
                     const orderA = a.featuredOrder > 0 ? a.featuredOrder : 9999;
                     const orderB = b.featuredOrder > 0 ? b.featuredOrder : 9999;
                     return orderA - orderB;
                 });
-
                 renderizarTabela();
-            } catch (error) {
-                document.getElementById('lista-produtos').innerHTML = `<tr><td colspan=\"5\" style=\"text-align:center; color:red;\">Erro ao conectar com a API.</td></tr>`;
-            }
+            } catch (error) { document.getElementById('lista-produtos').innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro ao conectar com a API.</td></tr>`; }
         }
 
         function renderizarTabela() {
             const tbody = document.getElementById('lista-produtos');
-            if (produtos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan=\"5\" style=\"text-align:center;\">Nenhum produto cadastrado.</td></tr>`;
-                return;
-            }
+            if (produtos.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum produto cadastrado.</td></tr>`;
 
             tbody.innerHTML = produtos.map(p => {
                 const mainMedia = p.media && p.media.length > 0 ? p.media[0] : '';
-                const ytId = getYouTubeId(mainMedia);
-                const driveId = getDriveId(mainMedia);
-                let midiaHtml = '<div class=\"media-preview-container\"></div>';
-
+                let midiaHtml = '<div class="media-preview-container"></div>';
                 if (mainMedia) {
-                    if (ytId) {
-                        midiaHtml = `<div class=\"media-preview-container\"><img src=\"https://img.youtube.com/vi/${ytId}/default.jpg\"><i class=\"fab fa-youtube admin-play-icon\" style=\"color:red\"></i></div>`;
-                    } else if (driveId) {
-                        midiaHtml = `<div class=\"media-preview-container\"><i class=\"fab fa-google-drive\" style=\"font-size:2rem; color:#00eaff\"></i></div>`;
-                    } else if (mainMedia.includes('streamable.com') || mainMedia.match(/\\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video')) {
-                        midiaHtml = `<div class=\"media-preview-container\"><i class=\"fas fa-video\" style=\"font-size:1.5rem; color:#888\"></i></div>`;
-                    } else {
-                        midiaHtml = `<div class=\"media-preview-container\"><img src=\"${mainMedia}\"></div>`;
-                    }
+                    if (getYouTubeId(mainMedia)) midiaHtml = `<div class="media-preview-container"><img src="https://img.youtube.com/vi/${getYouTubeId(mainMedia)}/default.jpg"><i class="fab fa-youtube admin-play-icon" style="color:red"></i></div>`;
+                    else if (getDriveId(mainMedia)) midiaHtml = `<div class="media-preview-container"><i class="fab fa-google-drive" style="font-size:2rem; color:#00eaff"></i></div>`;
+                    else if (mainMedia.includes('streamable') || mainMedia.match(/\.(mp4|webm|ogg|mov)/i) || mainMedia.includes('video')) midiaHtml = `<div class="media-preview-container"><i class="fas fa-video" style="font-size:1.5rem; color:#888"></i></div>`;
+                    else midiaHtml = `<div class="media-preview-container"><img src="${mainMedia}"></div>`;
                 }
 
-                const categoriaStr = p.category || 'Outros';
-                let ordemHtml = `<span class=\"badge\">${categoriaStr}</span>`;
-                if (p.featuredOrder > 0) {
-                    ordemHtml += `<br><span class=\"badge badge-destaque\" style=\"margin-top:5px; display:inline-block;\">★ Destaque #${p.featuredOrder}</span>`;
-                }
+                let ordemHtml = `<span class="badge">${p.category || 'Outros'}</span>`;
+                if (p.featuredOrder > 0) ordemHtml += `<br><span class="badge badge-destaque">★ Destaque #${p.featuredOrder}</span>`;
                 
-                const pesoStr = p.weight ? `<br><small style="color:#888">${p.weight} kg</small>` : '';
+                // Exibe o estoque
+                const estoqueQtd = p.stock !== undefined ? p.stock : 1;
+                const badgeEstoque = estoqueQtd <= 0 ? `<span class="badge" style="background:#ff4444;">Esgotado</span>` : `<span class="badge badge-estoque">Estoque: ${estoqueQtd}</span>`;
 
                 return `
                 <tr>
                     <td>${midiaHtml}</td>
-                    <td style=\"font-weight: 600;\">${p.name}</td>
-                    <td style=\"color: var(--accent-blue); font-weight: 800;\">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}${pesoStr}</td>
+                    <td style="font-weight: 600;">${p.name}</td>
+                    <td>
+                        <strong style="color: var(--accent-blue);">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong><br>
+                        ${badgeEstoque}
+                    </td>
                     <td>${ordemHtml}</td>
                     <td>
-                        <button class=\"action-btn edit-btn\" onclick=\"prepararEdicao('${p.id}')\" title=\"Editar\"><i class=\"fas fa-edit\"></i></button>
-                        <button class=\"action-btn delete-btn\" onclick=\"excluirProduto('${p.id}')\" title=\"Excluir\"><i class=\"fas fa-trash\"></i></button>
+                        <button class="action-btn edit-btn" onclick="prepararEdicao('${p.id}')" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn" onclick="excluirProduto('${p.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
                     </td>
-                </tr>
-                `;
+                </tr>`;
             }).join('');
         }
 
@@ -231,58 +209,37 @@
             const preco = parseFloat(document.getElementById('preco').value);
             const categoria = document.getElementById('categoria').value;
             const destaque = parseInt(document.getElementById('destaque').value) || 0;
-            const peso = parseFloat(document.getElementById('peso').value) || 1.0; // Pega o peso
+            const peso = parseFloat(document.getElementById('peso').value) || 1.0; 
+            const estoque = parseInt(document.getElementById('estoque').value) || 0; // Pega o estoque
             const descricao = document.getElementById('descricao').value;
-            
-            const textMidias = document.getElementById('midias').value;
-            const arrayMidias = textMidias.split('\\n').map(link => link.trim()).filter(link => link !== '');
+            const arrayMidias = document.getElementById('midias').value.split('\n').map(link => link.trim()).filter(link => link !== '');
 
-            const produtoData = { 
-                name: nome, 
-                price: preco, 
-                media: arrayMidias,
-                category: categoria,
-                featuredOrder: destaque,
-                description: descricao,
-                weight: peso // Envia o peso para a API
-            };
+            const produtoData = { name: nome, price: preco, media: arrayMidias, category: categoria, featuredOrder: destaque, description: descricao, weight: peso, stock: estoque };
 
             try {
-                const url = id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`;
-                const metodo = id ? 'PUT' : 'POST'; 
-
-                const res = await fetch(url, {
-                    method: metodo,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(produtoData)
+                const res = await fetch(id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`, {
+                    method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(produtoData)
                 });
-
-                if (res.ok) {
-                    alert(id ? "Anúncio atualizado!" : "Anúncio criado com sucesso!");
-                    limparFormulario();
-                    carregarProdutos();
-                } else {
-                    alert("Erro ao salvar produto no servidor.");
-                }
-            } catch (error) {
-                alert("Erro de conexão com a API.");
-            }
+                if (res.ok) { alert("Salvo com sucesso!"); limparFormulario(); carregarProdutos(); } 
+                else alert("Erro ao salvar produto no servidor.");
+            } catch (error) { alert("Erro de conexão com a API."); }
         }
 
         function prepararEdicao(id) {
-            const produto = produtos.find(p => p.id == id);
-            if (!produto) return;
-            document.getElementById('produto-id').value = produto.id;
-            document.getElementById('nome').value = produto.name;
-            document.getElementById('preco').value = produto.price;
-            document.getElementById('categoria').value = produto.category || 'Outros';
-            document.getElementById('destaque').value = produto.featuredOrder || 0;
-            document.getElementById('peso').value = produto.weight || 1.0; // Puxa o peso
-            document.getElementById('descricao').value = produto.description || ''; 
-            document.getElementById('midias').value = produto.media ? produto.media.join('\\n') : '';
+            const p = produtos.find(item => item.id == id);
+            if (!p) return;
+            document.getElementById('produto-id').value = p.id;
+            document.getElementById('nome').value = p.name;
+            document.getElementById('preco').value = p.price;
+            document.getElementById('categoria').value = p.category || 'Outros';
+            document.getElementById('destaque').value = p.featuredOrder || 0;
+            document.getElementById('peso').value = p.weight || 1.0; 
+            document.getElementById('estoque').value = p.stock !== undefined ? p.stock : 1; // Preenche estoque
+            document.getElementById('descricao').value = p.description || ''; 
+            document.getElementById('midias').value = p.media ? p.media.join('\n') : '';
             
-            document.getElementById('form-title').innerHTML = '<i class=\"fas fa-edit\"></i> Editando Anúncio';
-            document.getElementById('btn-salvar').innerHTML = '<i class=\"fas fa-save\"></i> Atualizar Produto';
+            document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editando Anúncio';
+            document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Atualizar Produto';
             document.getElementById('btn-cancelar').style.display = 'inline-flex';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -293,9 +250,9 @@
             document.getElementById('categoria').value = 'CPU Gamer';
             document.getElementById('destaque').value = '0';
             document.getElementById('peso').value = '1.0';
-            document.getElementById('descricao').value = '';
-            document.getElementById('form-title').innerHTML = '<i class=\"fas fa-plus-circle\"></i> Novo Anúncio';
-            document.getElementById('btn-salvar').innerHTML = '<i class=\"fas fa-save\"></i> Salvar Produto';
+            document.getElementById('estoque').value = '1';
+            document.getElementById('form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Novo Anúncio';
+            document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Salvar Produto';
             document.getElementById('btn-cancelar').style.display = 'none';
         }
 
@@ -303,11 +260,8 @@
             if (!confirm("Tem certeza que deseja excluir este anúncio permanentemente?")) return;
             try {
                 const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, { method: 'DELETE' });
-                if (res.ok) carregarProdutos();
-                else alert("Erro ao excluir o produto no servidor.");
-            } catch (error) {
-                alert("Erro de conexão com a API.");
-            }
+                if (res.ok) carregarProdutos(); else alert("Erro ao excluir.");
+            } catch (error) { alert("Erro de conexão."); }
         }
 
         carregarProdutos();
