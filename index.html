@@ -71,7 +71,6 @@
         .cart-input:focus { border-color: var(--accent-blue); }
         .calc-btn { padding: 10px 15px; background: var(--accent-blue); color: black; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         
-        /* Opções de Frete/Retirada */
         .shipping-card { background: #222; border: 1px solid #444; padding: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
         .shipping-card:hover { border-color: var(--accent-blue); }
         .shipping-card input { accent-color: var(--accent-blue); transform: scale(1.2); }
@@ -157,7 +156,6 @@
         <div class="cart-items" id="cart-items-container"></div>
         
         <div class="cart-footer">
-            
             <div class="cart-input-group">
                 <label><i class="fas fa-box"></i> Método de Entrega</label>
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -241,7 +239,7 @@
         let midiaAtualIndex = 0;
         let produtoAtualMedia = [];
         
-        let modoEntrega = 'pickup'; // Padrão: Retirada
+        let modoEntrega = 'pickup'; 
         let valorFreteSelecionado = 0;
         let nomeFreteSelecionado = "Retirada: Rua Nilo Ferri, 25, Castelo Branco, Cariacica";
 
@@ -292,7 +290,6 @@
                 let playIcon = getYouTubeId(mainMedia) || mainMedia.includes('streamable') ? `<i class="fas fa-play-circle play-icon"></i>` : '';
                 let badge = mediaCount > 1 ? `<div class="media-badge"><i class="fas fa-images"></i> +${mediaCount - 1}</div>` : '';
                 
-                // Lógica de visual do Estoque
                 const stock = p.stock !== undefined ? p.stock : 1;
                 const outOfStockDiv = stock <= 0 ? `<div class="out-of-stock-overlay"><span class="out-of-stock-text">Esgotado</span></div>` : '';
                 const btnStatus = stock <= 0 ? 'disabled' : '';
@@ -357,7 +354,6 @@
             else container.innerHTML = `<img src="${mediaUrl}" alt="Mídia" style="width: 100%; height: 100%; object-fit: contain;">`;
         }
 
-        /* --- LÓGICA DE ENTREGA E RETIRADA --- */
         function alternarEntrega(modo) {
             modoEntrega = modo;
             if (modo === 'pickup') {
@@ -369,7 +365,7 @@
             } else {
                 document.getElementById('pickup-container').style.display = 'none';
                 document.getElementById('correios-container').style.display = 'block';
-                valorFreteSelecionado = 0; // Zera até a pessoa calcular
+                valorFreteSelecionado = 0; 
                 nomeFreteSelecionado = "";
                 document.getElementById('shipping-options').innerHTML = "";
                 document.getElementById('label-frete').innerText = "Frete Selecionado:";
@@ -385,8 +381,6 @@
             if(cepDigitado.length < 8) return alert("CEP Incompleto");
 
             btn.innerText = "Aguarde..."; btn.disabled = true;
-            
-            // Soma o peso total baseando-se na quantidade no carrinho!
             const pesoTotal = cart.reduce((sum, item) => sum + ((item.weight || 1.0) * item.cartQuantity), 0);
 
             try {
@@ -429,7 +423,6 @@
             atualizarCarrinho();
         }
 
-        /* --- LÓGICA DE CARRINHO COM QUANTIDADE --- */
         function addToCart(id) {
             const p = products.find(item => item.id == id);
             if (p) {
@@ -444,10 +437,9 @@
                         return alert("Estoque máximo atingido para este produto!");
                     }
                 } else {
-                    cart.push({...p, cartQuantity: 1}); // Adiciona com Qtd = 1
+                    cart.push({...p, cartQuantity: 1}); 
                 }
                 
-                // Se adicionou produto e já tinha Correios calculado, força a recalcular o frete pelo peso novo
                 if(modoEntrega === 'correios' && valorFreteSelecionado > 0) {
                     document.getElementById('shipping-options').innerHTML = `<span style="color:#ff8c00; font-size:0.8rem;">O peso do carrinho mudou. Recalcule o frete.</span>`;
                     valorFreteSelecionado = 0;
@@ -466,16 +458,12 @@
             const stockAtual = item.stock !== undefined ? item.stock : 1;
             const novaQtd = item.cartQuantity + delta;
 
-            if (novaQtd > stockAtual) {
-                return alert("Estoque máximo atingido para este produto!");
-            }
+            if (novaQtd > stockAtual) return alert("Estoque máximo atingido para este produto!");
 
             if (novaQtd <= 0) {
                 removerItemId(id);
             } else {
                 item.cartQuantity = novaQtd;
-                
-                // Pede para recalcular frete se houver mudança
                 if(modoEntrega === 'correios' && valorFreteSelecionado > 0) {
                     document.getElementById('shipping-options').innerHTML = `<span style="color:#ff8c00; font-size:0.8rem;">O peso do carrinho mudou. Recalcule o frete.</span>`;
                     valorFreteSelecionado = 0;
@@ -507,7 +495,6 @@
                     valorFreteSelecionado = 0; nomeFreteSelecionado = "";
                 }
             } else {
-                // Monta o visual com botões de Mais e Menos
                 container.innerHTML = cart.map((item, idx) => `
                     <div style="padding:15px; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center;">
                         <div style="flex-grow:1; padding-right:10px;">
@@ -524,7 +511,6 @@
                 `).join('');
             }
             
-            // Subtotal agora multiplica a quantidade!
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0);
             const totalFinal = cart.length > 0 ? subtotal + valorFreteSelecionado : 0;
             
@@ -568,7 +554,6 @@
                 const data = await res.json();
 
                 if (data.success && data.init_point) {
-                    // Manda a quantidade certinha na notificação do WhatsApp
                     let itensTxt = cart.map(i => `✅ ${i.cartQuantity}x ${i.name}`).join('%0A');
                     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0);
                     const totalGeral = subtotal + valorFreteSelecionado;
