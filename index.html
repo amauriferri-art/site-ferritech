@@ -554,19 +554,9 @@
                 const data = await res.json();
 
                 if (data.success && data.init_point) {
-                    let itensTxt = cart.map(i => `✅ ${i.cartQuantity}x ${i.name}`).join('%0A');
-                    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0);
-                    const totalGeral = subtotal + valorFreteSelecionado;
                     
-                    let zapMsg = `*🚀 NOVO PEDIDO - A CAMINHO DO PAGAMENTO*%0A%0A`;
-                    zapMsg += `*Itens:*%0A${itensTxt}%0A%0A`;
-                    zapMsg += `*Entrega:* ${nomeFreteSelecionado} - R$ ${valorFreteSelecionado.toFixed(2)}%0A`;
-                    zapMsg += `*Total a Pagar:* R$ ${totalGeral.toFixed(2)}%0A%0A`;
-                    zapMsg += `_O cliente já está na tela do Mercado Pago finalizando a compra via site._`;
-
-                    window.open(`https://wa.me/5527995809348?text=${zapMsg}`, '_blank');
-                    
-                    setTimeout(() => { window.location.href = data.init_point; }, 1000);
+                    // Redireciona DIRETAMENTE para o Mercado Pago (SEM WHATSAPP)
+                    window.location.href = data.init_point;
 
                 } else {
                     alert("Erro ao conectar com Mercado Pago. Tente novamente.");
