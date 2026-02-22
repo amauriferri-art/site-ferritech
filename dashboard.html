@@ -5,15 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FerriTech | Painel Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
-    <script>if (sessionStorage.getItem('isAdmin') !== 'true') window.location.href = 'login.html';</script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <script>
+        // VERIFICA SE TEM A CHAVE DE SEGURANÇA
+        if (sessionStorage.getItem('isAdmin') !== 'true' || !sessionStorage.getItem('adminToken')) {
+            window.location.href = 'login.html';
+        }
+    </script>
     <style>
         :root { --bg-dark: #0f0f0f; --bg-card: #181818; --accent-blue: #00eaff; --accent-orange: #ff8c00; --danger: #ff4444; --success: #00c851; --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); }
         header { background: rgba(0, 0, 0, 0.9); border-bottom: 1px solid #333; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; }
-        .logo-text { font-size: 1.5rem; font-weight: 800; color: white; }
-        .logo-text span { color: var(--accent-blue); }
+        .logo-text { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 700; color: white; letter-spacing: 1px;}
+        .logo-text span { font-family: 'Orbitron', sans-serif; color: var(--accent-blue); }
         .header-links { display: flex; gap: 20px; }
         .back-link { color: #888; text-decoration: none; font-size: 0.9rem; transition: 0.3s;}
         .back-link:hover { color: white; }
@@ -112,17 +117,8 @@
             <h2 style="margin-bottom: 20px;">📦 Últimos Pedidos</h2>
             <div class="table-responsive">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Data / Cliente</th>
-                            <th>Itens</th>
-                            <th>Entrega / Endereço</th>
-                            <th>Status e Rastreio</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lista-pedidos-admin">
-                        <tr><td colspan="4" style="text-align:center;">Nenhum pedido encontrado.</td></tr>
-                    </tbody>
+                    <thead><tr><th>Data / Cliente</th><th>Itens</th><th>Entrega / Endereço</th><th>Status e Rastreio</th></tr></thead>
+                    <tbody id="lista-pedidos-admin"><tr><td colspan="4" style="text-align:center;">Nenhum pedido encontrado.</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -130,8 +126,9 @@
 
     <script>
         const API_BASE_URL = 'https://ferritech-api.onrender.com';
-        let produtos = [];
-        let listaDePedidos = [];
+        const adminToken = sessionStorage.getItem('adminToken'); // PEGA A CHAVE
+        
+        let produtos = []; let listaDePedidos = [];
 
         function mudarAba(abaId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -140,11 +137,16 @@
             event.currentTarget.classList.add('active');
         }
 
-        function fazerLogout() { sessionStorage.removeItem('isAdmin'); window.location.href = 'login.html'; }
+        function fazerLogout() { 
+            sessionStorage.removeItem('isAdmin'); 
+            sessionStorage.removeItem('adminToken'); 
+            window.location.href = 'login.html'; 
+        }
 
+        // --- GESTÃO DE PRODUTOS ---
         async function carregarProdutos() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/produtos`);
+                const res = await fetch(`${API_BASE_URL}/api/produtos`); // Rota pública, não precisa de token
                 produtos = await res.json();
                 renderizarTabelaProdutos();
             } catch (error) {}
@@ -166,36 +168,39 @@
             }).join('');
         }
 
+        // --- GESTÃO DE PEDIDOS (COM SEGURANÇA) ---
         async function carregarPedidos() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/admin/pedidos`);
+                const res = await fetch(`${API_BASE_URL}/api/admin/pedidos`, {
+                    headers: { 'Authorization': `Bearer ${adminToken}` } // ENVIA A CHAVE
+                });
+                
+                if(!res.ok) {
+                    if(res.status === 401 || res.status === 403) {
+                        alert("Sessão expirada. Faça login novamente.");
+                        fazerLogout();
+                    }
+                    return;
+                }
+
                 listaDePedidos = await res.json();
                 const tbody = document.getElementById('lista-pedidos-admin');
                 
                 tbody.innerHTML = listaDePedidos.map(p => {
                     const dataFormatada = new Date(p.dataPedido).toLocaleDateString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                     const itensStr = p.itens.map(i => `${i.cartQuantity}x ${i.name}`).join('<br>');
-                    
                     let enderecoStr = '<span style="color:#ff8c00">Retirada no Local</span>';
-                    let btnEtiqueta = '';
-                    let rastreioInputHtml = '';
+                    let btnEtiqueta = ''; let rastreioInputHtml = '';
                     
                     if (p.endereco) {
                         enderecoStr = `${p.endereco.rua}, ${p.endereco.numero} ${p.endereco.complemento ? ' - '+p.endereco.complemento : ''}<br>${p.endereco.bairro}, ${p.endereco.cidade}-${p.endereco.uf}<br>CEP: ${p.endereco.cep}`;
                         btnEtiqueta = `<br><button class="btn-print" onclick="imprimirEtiqueta('${p._id}')"><i class="fas fa-print"></i> Imprimir Etiqueta</button>`;
-                        
-                        // CAIXA DE RASTREIO - Só aparece se for Correios
-                        rastreioInputHtml = `
-                        <div style="margin-top: 10px; border-top: 1px dashed #333; padding-top: 10px;">
-                            <input type="text" id="rastreio-${p._id}" class="rastreio-input" placeholder="Cod. Rastreio" value="${p.codigoRastreio || ''}">
-                            <button class="btn-rastreio" onclick="enviarRastreio('${p._id}')">Enviar Rastreio</button>
-                        </div>`;
+                        rastreioInputHtml = `<div style="margin-top: 10px; border-top: 1px dashed #333; padding-top: 10px;"><input type="text" id="rastreio-${p._id}" class="rastreio-input" placeholder="Cod. Rastreio" value="${p.codigoRastreio || ''}"><button class="btn-rastreio" onclick="enviarRastreio('${p._id}')">Enviar Rastreio</button></div>`;
                     }
                     
                     const colorStatus = p.status === 'Pago' ? 'color: #00c851; font-weight: bold;' : (p.status === 'Enviado' ? 'color: var(--accent-orange); font-weight: bold;' : '');
 
-                    return `
-                    <tr>
+                    return `<tr>
                         <td><strong>${p.nomeCliente}</strong><br><small style="color:#888">${dataFormatada}</small><br><small>Ref: ${p._id.slice(-6)}</small></td>
                         <td style="font-size:0.85rem; color:#ccc;">${itensStr}</td>
                         <td style="font-size:0.85rem;"><strong style="color:var(--accent-blue)">R$ ${p.total.toFixed(2)}</strong><br><br>${enderecoStr}</td>
@@ -205,7 +210,7 @@
                                 <select id="status-${p._id}" class="status-select">
                                     <option value="Pendente" ${p.status === 'Pendente' ? 'selected' : ''}>Pendente (Aguardando)</option>
                                     <option value="Pago" ${p.status === 'Pago' ? 'selected' : ''}>Pago</option>
-                                    <option value="Enviado" ${p.status === 'Enviado' ? 'selected' : ''}>Enviado / Pronto P/ Retirar</option>
+                                    <option value="Enviado" ${p.status === 'Enviado' ? 'selected' : ''}>Enviado / Pronto</option>
                                     <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
                                 </select>
                                 <button class="btn-status" onclick="atualizarStatus('${p._id}')">OK</button>
@@ -222,41 +227,67 @@
             const novoStatus = document.getElementById(`status-${pedidoId}`).value;
             try {
                 const res = await fetch(`${API_BASE_URL}/api/admin/pedidos/${pedidoId}/status`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: novoStatus })
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` }, 
+                    body: JSON.stringify({ status: novoStatus })
                 });
                 if(res.ok) { alert("Status atualizado!"); carregarPedidos(); }
+                else if(res.status === 401 || res.status === 403) fazerLogout();
             } catch(e) { alert("Erro ao atualizar."); }
         }
 
-        // FUNÇÃO QUE MANDA O RASTREIO PARA O BANCO DE DADOS
         async function enviarRastreio(pedidoId) {
             const codigo = document.getElementById(`rastreio-${pedidoId}`).value;
             if(!codigo) return alert("Digite o código de rastreio primeiro.");
-
             try {
                 const res = await fetch(`${API_BASE_URL}/api/admin/pedidos/${pedidoId}/rastreio`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rastreio: codigo })
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` }, 
+                    body: JSON.stringify({ rastreio: codigo })
                 });
-                if(res.ok) { 
-                    alert("Rastreio salvo! Status alterado para Enviado automaticamente."); 
-                    carregarPedidos(); 
-                }
+                if(res.ok) { alert("Rastreio salvo! Status alterado para Enviado."); carregarPedidos(); }
+                else if(res.status === 401 || res.status === 403) fazerLogout();
             } catch(e) { alert("Erro ao salvar rastreio."); }
         }
 
         function imprimirEtiqueta(pedidoId) {
             const pedido = listaDePedidos.find(p => p._id === pedidoId);
             if (!pedido || !pedido.endereco) return alert("Pedido não possui endereço.");
-
-            const htmlEtiqueta = `
-            <html><head><title>Etiqueta de Envio - ${pedido.nomeCliente}</title><style>body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; color: #000; } .etiqueta { border: 2px solid #000; width: 10cm; height: 14cm; padding: 20px; box-sizing: border-box; position: relative; margin: 0 auto;} .titulo { font-size: 18px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px;} .destinatario { border: 2px dashed #000; padding: 15px; border-radius: 8px; margin-bottom: 20px;} .destinatario h3 { margin: 0 0 10px 0; font-size: 20px; text-transform: uppercase; } .destinatario p { margin: 5px 0; font-size: 16px; font-weight: bold; } .remetente { font-size: 12px; color: #333; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px;} .aviso { text-align: center; color: red; margin-top: 20px; font-size: 12px;} @media print { .aviso { display: none; } }</style></head><body><p class="aviso">Pressione Ctrl+P para imprimir. Cole esta etiqueta na caixa.</p><div class="etiqueta"><div class="titulo">DESTINATÁRIO</div><div class="destinatario"><h3>${pedido.nomeCliente}</h3><p>${pedido.endereco.rua}, Nº ${pedido.endereco.numero}</p><p>${pedido.endereco.complemento ? 'Comp: ' + pedido.endereco.complemento : ''}</p><p>Bairro: ${pedido.endereco.bairro}</p><p>${pedido.endereco.cidade} - ${pedido.endereco.uf}</p><p style="font-size: 22px; margin-top: 15px;">CEP: ${pedido.endereco.cep}</p></div><div class="remetente"><strong>REMETENTE:</strong><br>FerriTech - Alta Performance<br>Rua Nilo Ferri, 25 - Castelo Branco<br>Cariacica - ES | CEP: 29140-878<br>Ref do Pedido: #${pedido._id.slice(-8)}</div></div><script>window.onload = function() { window.print(); }<\/script></body></html>`;
+            const htmlEtiqueta = `<html><head><title>Etiqueta de Envio - ${pedido.nomeCliente}</title><style>body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; color: #000; } .etiqueta { border: 2px solid #000; width: 10cm; height: 14cm; padding: 20px; box-sizing: border-box; position: relative; margin: 0 auto;} .titulo { font-size: 18px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px;} .destinatario { border: 2px dashed #000; padding: 15px; border-radius: 8px; margin-bottom: 20px;} .destinatario h3 { margin: 0 0 10px 0; font-size: 20px; text-transform: uppercase; } .destinatario p { margin: 5px 0; font-size: 16px; font-weight: bold; } .remetente { font-size: 12px; color: #333; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px;} .aviso { text-align: center; color: red; margin-top: 20px; font-size: 12px;} @media print { .aviso { display: none; } }</style></head><body><p class="aviso">Pressione Ctrl+P para imprimir. Cole esta etiqueta na caixa.</p><div class="etiqueta"><div class="titulo">DESTINATÁRIO</div><div class="destinatario"><h3>${pedido.nomeCliente}</h3><p>${pedido.endereco.rua}, Nº ${pedido.endereco.numero}</p><p>${pedido.endereco.complemento ? 'Comp: ' + pedido.endereco.complemento : ''}</p><p>Bairro: ${pedido.endereco.bairro}</p><p>${pedido.endereco.cidade} - ${pedido.endereco.uf}</p><p style="font-size: 22px; margin-top: 15px;">CEP: ${pedido.endereco.cep}</p></div><div class="remetente"><strong>REMETENTE:</strong><br>FerriTech - Alta Performance<br>Rua Nilo Ferri, 25 - Castelo Branco<br>Cariacica - ES | CEP: 29140-878<br>Ref do Pedido: #${pedido._id.slice(-8)}</div></div><script>window.onload = function() { window.print(); }<\/script></body></html>`;
             const win = window.open('', '_blank'); win.document.write(htmlEtiqueta); win.document.close();
         }
 
-        async function salvarProduto(e) { e.preventDefault(); const id = document.getElementById('produto-id').value; const nome = document.getElementById('nome').value; const preco = parseFloat(document.getElementById('preco').value); const categoria = document.getElementById('categoria').value; const destaque = parseInt(document.getElementById('destaque').value) || 0; const peso = parseFloat(document.getElementById('peso').value) || 1.0; const estoque = parseInt(document.getElementById('estoque').value) || 0; const descricao = document.getElementById('descricao').value; const arrayMidias = document.getElementById('midias').value.split('\n').map(link => link.trim()).filter(link => link !== ''); const produtoData = { name: nome, price: preco, media: arrayMidias, category: categoria, featuredOrder: destaque, description: descricao, weight: peso, stock: estoque }; try { const res = await fetch(id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(produtoData) }); if (res.ok) { alert("Salvo com sucesso!"); limparFormulario(); carregarProdutos(); } else alert("Erro ao salvar produto no servidor."); } catch (error) { alert("Erro de conexão com a API."); } }
+        async function salvarProduto(e) { 
+            e.preventDefault(); 
+            const id = document.getElementById('produto-id').value; const nome = document.getElementById('nome').value; const preco = parseFloat(document.getElementById('preco').value); const categoria = document.getElementById('categoria').value; const destaque = parseInt(document.getElementById('destaque').value) || 0; const peso = parseFloat(document.getElementById('peso').value) || 1.0; const estoque = parseInt(document.getElementById('estoque').value) || 0; const descricao = document.getElementById('descricao').value; const arrayMidias = document.getElementById('midias').value.split('\n').map(link => link.trim()).filter(link => link !== ''); 
+            const produtoData = { name: nome, price: preco, media: arrayMidias, category: categoria, featuredOrder: destaque, description: descricao, weight: peso, stock: estoque }; 
+            try { 
+                const res = await fetch(id ? `${API_BASE_URL}/api/produtos/${id}` : `${API_BASE_URL}/api/produtos`, { 
+                    method: id ? 'PUT' : 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` }, 
+                    body: JSON.stringify(produtoData) 
+                }); 
+                if (res.ok) { alert("Salvo com sucesso!"); limparFormulario(); carregarProdutos(); } 
+                else if(res.status === 401 || res.status === 403) fazerLogout();
+                else alert("Erro ao salvar produto no servidor."); 
+            } catch (error) { alert("Erro de conexão."); } 
+        }
+
         function prepararEdicao(id) { const p = produtos.find(item => item.id == id); if (!p) return; document.getElementById('produto-id').value = p.id; document.getElementById('nome').value = p.name; document.getElementById('preco').value = p.price; document.getElementById('categoria').value = p.category || 'Outros'; document.getElementById('destaque').value = p.featuredOrder || 0; document.getElementById('peso').value = p.weight || 1.0; document.getElementById('estoque').value = p.stock !== undefined ? p.stock : 1; document.getElementById('descricao').value = p.description || ''; document.getElementById('midias').value = p.media ? p.media.join('\n') : ''; document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editando Anúncio'; document.getElementById('btn-salvar').innerHTML = '<i class="fas fa-save"></i> Atualizar Produto'; document.getElementById('btn-cancelar').style.display = 'inline-flex'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function limparFormulario() { document.getElementById('product-form').reset(); document.getElementById('produto-id').value = ''; document.getElementById('categoria').value = 'CPU Gamer'; document.getElementById('btn-cancelar').style.display = 'none'; }
-        async function excluirProduto(id) { if (!confirm("Tem certeza que deseja excluir este anúncio permanentemente?")) return; try { const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, { method: 'DELETE' }); if (res.ok) carregarProdutos(); else alert("Erro ao excluir."); } catch (error) { alert("Erro de conexão."); } }
+        
+        async function excluirProduto(id) { 
+            if (!confirm("Tem certeza que deseja excluir este anúncio permanentemente?")) return; 
+            try { 
+                const res = await fetch(`${API_BASE_URL}/api/produtos/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${adminToken}` }
+                }); 
+                if (res.ok) carregarProdutos(); 
+                else if(res.status === 401 || res.status === 403) fazerLogout();
+                else alert("Erro ao excluir."); 
+            } catch (error) { alert("Erro de conexão."); } 
+        }
 
         carregarProdutos();
     </script>
