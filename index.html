@@ -119,7 +119,7 @@
         .close-auth { position: absolute; top: 15px; right: 20px; color: #888; cursor: pointer; font-size: 1.2rem; }
         .close-auth:hover { color: white; }
 
-        /* Estilo da tela do MP Brick (Branco para contraste) */
+        /* Estilo da tela do MP Brick (Branco para contraste e não quebrar design) */
         .brick-box { background: #ffffff; padding: 20px; border-radius: 16px; width: 95%; max-width: 500px; position: relative; max-height: 90vh; overflow-y: auto; }
 
         @media (max-width: 900px) {
@@ -277,9 +277,9 @@
 
     <script>
         // =========================================================
-        // ATENÇÃO: COLOQUE SUA CHAVE PÚBLICA AQUI EMBAIXO
+        // ✅ CHAVE PÚBLICA CORRETA INSERIDA AQUI:
         // =========================================================
-        const MP_PUBLIC_KEY = 'APP_USR-38731549720996-022209-f27cff07ccf077588c430dbc72063cbc-33353415'; 
+        const MP_PUBLIC_KEY = 'APP_USR-798350a7-118e-436f-8377-e30e7cb5d72d'; 
         
         const API_BASE_URL = 'https://ferritech-api.onrender.com'; 
         let cart = [], products = [], categoriaAtual = 'Destaques', midiaAtualIndex = 0, produtoAtualMedia = [];
@@ -489,7 +489,7 @@
                                 resolve();
                                 if (data.success) {
                                     if (data.pixUrl) window.location.href = data.pixUrl; // Tela segura do QR Code MP
-                                    else { alert("Pagamento aprovado!"); window.location.href = 'conta.html'; } // Cartão
+                                    else { alert("Pagamento processado!"); window.location.href = 'conta.html'; } 
                                 } else { alert("Erro ao processar pagamento."); }
                             }).catch(() => { reject(); alert("Falha na conexão."); });
                         });
@@ -510,7 +510,7 @@
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0);
             const totalGeral = subtotal + valorFreteSelecionado;
             toggleCart();
-            abrirBrickModal(totalGeral); // Abre a tela do MP por cima
+            abrirBrickModal(totalGeral);
         }
 
         carregarProdutos();
