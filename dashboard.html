@@ -181,7 +181,6 @@
                 let ordemHtml = `<span class="badge">${p.category || 'Outros'}</span>`;
                 if (p.featuredOrder > 0) ordemHtml += `<br><span class="badge badge-destaque">★ Destaque #${p.featuredOrder}</span>`;
                 
-                // Exibe o estoque
                 const estoqueQtd = p.stock !== undefined ? p.stock : 1;
                 const badgeEstoque = estoqueQtd <= 0 ? `<span class="badge" style="background:#ff4444;">Esgotado</span>` : `<span class="badge badge-estoque">Estoque: ${estoqueQtd}</span>`;
 
@@ -210,7 +209,7 @@
             const categoria = document.getElementById('categoria').value;
             const destaque = parseInt(document.getElementById('destaque').value) || 0;
             const peso = parseFloat(document.getElementById('peso').value) || 1.0; 
-            const estoque = parseInt(document.getElementById('estoque').value) || 0; // Pega o estoque
+            const estoque = parseInt(document.getElementById('estoque').value) || 0;
             const descricao = document.getElementById('descricao').value;
             const arrayMidias = document.getElementById('midias').value.split('\n').map(link => link.trim()).filter(link => link !== '');
 
@@ -234,7 +233,7 @@
             document.getElementById('categoria').value = p.category || 'Outros';
             document.getElementById('destaque').value = p.featuredOrder || 0;
             document.getElementById('peso').value = p.weight || 1.0; 
-            document.getElementById('estoque').value = p.stock !== undefined ? p.stock : 1; // Preenche estoque
+            document.getElementById('estoque').value = p.stock !== undefined ? p.stock : 1; 
             document.getElementById('descricao').value = p.description || ''; 
             document.getElementById('midias').value = p.media ? p.media.join('\n') : '';
             
