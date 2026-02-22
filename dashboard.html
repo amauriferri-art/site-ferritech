@@ -19,15 +19,12 @@
         .back-link:hover { color: white; }
         .admin-container { padding: 40px 5%; max-width: 1200px; margin: 0 auto; }
         
-        /* Menu de Abas Admin */
         .admin-tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 15px; }
         .tab-btn { background: #222; border: 1px solid #444; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s;}
         .tab-btn.active { background: var(--accent-blue); color: black; border-color: var(--accent-blue); }
-        
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Formulários e Tabelas (Mantidos) */
         .form-card { background: var(--bg-card); padding: 30px; border-radius: 12px; border: 1px solid #333; margin-bottom: 40px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-group.full-width { grid-column: 1 / -1; }
@@ -42,11 +39,13 @@
         th, td { padding: 15px 20px; border-bottom: 1px solid #222; vertical-align: middle; }
         th { background: #111; color: var(--accent-blue); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
         
-        /* Select de Status */
         .status-select { background: #222; color: white; border: 1px solid #444; padding: 5px; border-radius: 4px; }
         .btn-status { background: #444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: 5px;}
-        .btn-status:hover { background: var(--accent-orange); }
+        .btn-status:hover { background: var(--success); }
         
+        .btn-print { background: #444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-top: 5px; display: inline-flex; align-items: center; gap: 5px;}
+        .btn-print:hover { background: #fff; color: #000; }
+
         .media-preview-container { width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; position: relative;}
         .media-preview-container img { width: 100%; height: 100%; object-fit: cover; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-right: 15px; color: #aaa;}
@@ -77,46 +76,21 @@
                 <form id="product-form" onsubmit="salvarProduto(event)">
                     <input type="hidden" id="produto-id">
                     <div class="form-grid">
-                        <div class="form-group full-width">
-                            <label>Nome do Produto</label>
-                            <input type="text" id="nome" class="form-control" required placeholder="Ex: Placa de Vídeo RTX 3060">
-                        </div>
-                        <div class="form-group">
-                            <label>Preço (R$)</label>
-                            <input type="number" id="preco" class="form-control" step="0.01" required placeholder="Ex: 1500.00">
-                        </div>
+                        <div class="form-group full-width"><label>Nome do Produto</label><input type="text" id="nome" class="form-control" required></div>
+                        <div class="form-group"><label>Preço (R$)</label><input type="number" id="preco" class="form-control" step="0.01" required></div>
                         <div class="form-group">
                             <label>Categoria</label>
                             <select id="categoria" class="form-control" required>
-                                <option value="CPU Gamer">CPU Gamer</option>
-                                <option value="Processadores">Processadores</option>
-                                <option value="Memorias">Memórias</option>
-                                <option value="Periféricos">Periféricos</option>
-                                <option value="Pc gamer completo">PC Gamer Completo</option>
-                                <option value="Celulares">Celulares</option>
-                                <option value="Outros">Outros</option>
+                                <option value="CPU Gamer">CPU Gamer</option><option value="Processadores">Processadores</option>
+                                <option value="Memorias">Memórias</option><option value="Periféricos">Periféricos</option>
+                                <option value="Pc gamer completo">PC Gamer Completo</option><option value="Celulares">Celulares</option><option value="Outros">Outros</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Estoque (Qtd)</label>
-                            <input type="number" id="estoque" class="form-control" value="1" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Peso (Kg)</label>
-                            <input type="number" id="peso" class="form-control" step="0.01" value="1.00" required>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Posição nos Destaques (0 = Não destacar)</label>
-                            <input type="number" id="destaque" class="form-control" value="0" min="0" required>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Descrição do Produto</label>
-                            <textarea id="descricao" class="form-control" style="min-height: 100px;"></textarea>
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Links das Mídias (Um por linha)</label>
-                            <textarea id="midias" class="form-control" required></textarea>
-                        </div>
+                        <div class="form-group"><label>Estoque (Qtd)</label><input type="number" id="estoque" class="form-control" value="1" min="0" required></div>
+                        <div class="form-group"><label>Peso (Kg)</label><input type="number" id="peso" class="form-control" step="0.01" value="1.00" required></div>
+                        <div class="form-group full-width"><label>Posição nos Destaques (0 = Não destacar)</label><input type="number" id="destaque" class="form-control" value="0" min="0" required></div>
+                        <div class="form-group full-width"><label>Descrição do Produto</label><textarea id="descricao" class="form-control" style="min-height: 100px;"></textarea></div>
+                        <div class="form-group full-width"><label>Links das Mídias (Um por linha)</label><textarea id="midias" class="form-control" required></textarea></div>
                     </div>
                     <div style="margin-top: 10px;">
                         <button type="submit" class="btn btn-primary" id="btn-salvar"><i class="fas fa-save"></i> Salvar Produto</button>
@@ -127,9 +101,7 @@
 
             <div class="table-responsive">
                 <table>
-                    <thead>
-                        <tr><th>Mídia</th><th>Nome</th><th>Preço/Estoque</th><th>Ações</th></tr>
-                    </thead>
+                    <thead><tr><th>Mídia</th><th>Nome</th><th>Preço/Estoque</th><th>Ações</th></tr></thead>
                     <tbody id="lista-produtos"><tr><td colspan="4" style="text-align:center;">Carregando anúncios...</td></tr></tbody>
                 </table>
             </div>
@@ -143,7 +115,7 @@
                         <tr>
                             <th>Data / Cliente</th>
                             <th>Itens</th>
-                            <th>Total / Entrega</th>
+                            <th>Entrega / Endereço</th>
                             <th>Status (Alterar)</th>
                         </tr>
                     </thead>
@@ -159,6 +131,7 @@
     <script>
         const API_BASE_URL = 'https://ferritech-api.onrender.com';
         let produtos = [];
+        let listaDePedidos = [];
 
         function mudarAba(abaId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -194,30 +167,43 @@
             }).join('');
         }
 
-        // --- GESTÃO DE PEDIDOS ---
+        // --- GESTÃO DE PEDIDOS E ETIQUETA ---
         async function carregarPedidos() {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/admin/pedidos`);
-                const pedidos = await res.json();
+                listaDePedidos = await res.json(); // Salva os pedidos numa variavel global
                 const tbody = document.getElementById('lista-pedidos-admin');
                 
-                tbody.innerHTML = pedidos.map(p => {
-                    const dataFormatada = new Date(p.dataPedido).toLocaleDateString('pt-BR');
+                tbody.innerHTML = listaDePedidos.map(p => {
+                    const dataFormatada = new Date(p.dataPedido).toLocaleDateString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                     const itensStr = p.itens.map(i => `${i.cartQuantity}x ${i.name}`).join('<br>');
                     
+                    let enderecoStr = '<span style="color:#ff8c00">Retirada no Local</span>';
+                    let btnEtiqueta = '';
+                    
+                    if (p.endereco) {
+                        enderecoStr = `${p.endereco.rua}, ${p.endereco.numero} ${p.endereco.complemento ? ' - '+p.endereco.complemento : ''}<br>${p.endereco.bairro}, ${p.endereco.cidade}-${p.endereco.uf}<br>CEP: ${p.endereco.cep}`;
+                        btnEtiqueta = `<br><button class="btn-print" onclick="imprimirEtiqueta('${p._id}')"><i class="fas fa-print"></i> Imprimir Etiqueta</button>`;
+                    }
+                    
+                    // Colore o status de Verde se já foi Pago
+                    const colorStatus = p.status === 'Pago' ? 'color: #00c851; font-weight: bold;' : '';
+
                     return `
                     <tr>
-                        <td><strong>${p.nomeCliente}</strong><br><small style="color:#888">${dataFormatada}</small></td>
+                        <td><strong>${p.nomeCliente}</strong><br><small style="color:#888">${dataFormatada}</small><br><small>Ref: ${p._id.slice(-6)}</small></td>
                         <td style="font-size:0.85rem; color:#ccc;">${itensStr}</td>
-                        <td><strong style="color:var(--accent-blue)">R$ ${p.total.toFixed(2)}</strong><br><small>${p.metodoEntrega}</small></td>
+                        <td style="font-size:0.85rem;"><strong style="color:var(--accent-blue)">R$ ${p.total.toFixed(2)}</strong><br><br>${enderecoStr}</td>
                         <td>
+                            <div style="margin-bottom: 5px; ${colorStatus}">Atual: ${p.status}</div>
                             <select id="status-${p._id}" class="status-select">
-                                <option value="Pendente" ${p.status === 'Pendente' ? 'selected' : ''}>Pendente (Aguardando Pgto)</option>
+                                <option value="Pendente" ${p.status === 'Pendente' ? 'selected' : ''}>Pendente (Aguardando)</option>
                                 <option value="Pago" ${p.status === 'Pago' ? 'selected' : ''}>Pago</option>
-                                <option value="Enviado" ${p.status === 'Enviado' ? 'selected' : ''}>Enviado / Aguardando Retirada</option>
+                                <option value="Enviado" ${p.status === 'Enviado' ? 'selected' : ''}>Enviado / Pronto P/ Retirar</option>
                                 <option value="Entregue" ${p.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
                             </select>
-                            <button class="btn-status" onclick="atualizarStatus('${p._id}')">Salvar</button>
+                            <button class="btn-status" onclick="atualizarStatus('${p._id}')">OK</button>
+                            ${btnEtiqueta}
                         </td>
                     </tr>`;
                 }).join('');
@@ -230,12 +216,66 @@
                 const res = await fetch(`${API_BASE_URL}/api/admin/pedidos/${pedidoId}/status`, {
                     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: novoStatus })
                 });
-                if(res.ok) alert("Status atualizado! O cliente já pode ver a mudança.");
+                if(res.ok) { alert("Status atualizado!"); carregarPedidos(); }
             } catch(e) { alert("Erro ao atualizar."); }
         }
 
-        // (Funções de Salvar/Editar/Excluir produtos omitidas para caber, mantenha as suas originais do dashboard que funcionam perfeitamente).
-        
+        // === GERADOR DE ETIQUETA DE ENVIO ===
+        function imprimirEtiqueta(pedidoId) {
+            const pedido = listaDePedidos.find(p => p._id === pedidoId);
+            if (!pedido || !pedido.endereco) return alert("Pedido não possui endereço.");
+
+            const htmlEtiqueta = `
+            <html>
+            <head>
+                <title>Etiqueta de Envio - ${pedido.nomeCliente}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; color: #000; }
+                    .etiqueta { border: 2px solid #000; width: 10cm; height: 14cm; padding: 20px; box-sizing: border-box; position: relative; margin: 0 auto;}
+                    .titulo { font-size: 18px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px;}
+                    .destinatario { border: 2px dashed #000; padding: 15px; border-radius: 8px; margin-bottom: 20px;}
+                    .destinatario h3 { margin: 0 0 10px 0; font-size: 20px; text-transform: uppercase; }
+                    .destinatario p { margin: 5px 0; font-size: 16px; font-weight: bold; }
+                    .remetente { font-size: 12px; color: #333; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px;}
+                    .peso { font-size: 14px; position: absolute; bottom: 20px; right: 20px; font-weight: bold;}
+                    .aviso { text-align: center; color: red; margin-top: 20px; font-size: 12px;}
+                    @media print { .aviso { display: none; } }
+                </style>
+            </head>
+            <body>
+                <p class="aviso">Pressione Ctrl+P para imprimir. Cole esta etiqueta na caixa.</p>
+                <div class="etiqueta">
+                    <div class="titulo">DESTINATÁRIO</div>
+                    <div class="destinatario">
+                        <h3>${pedido.nomeCliente}</h3>
+                        <p>${pedido.endereco.rua}, Nº ${pedido.endereco.numero}</p>
+                        <p>${pedido.endereco.complemento ? 'Comp: ' + pedido.endereco.complemento : ''}</p>
+                        <p>Bairro: ${pedido.endereco.bairro}</p>
+                        <p>${pedido.endereco.cidade} - ${pedido.endereco.uf}</p>
+                        <p style="font-size: 22px; margin-top: 15px;">CEP: ${pedido.endereco.cep}</p>
+                    </div>
+
+                    <div class="remetente">
+                        <strong>REMETENTE:</strong><br>
+                        FerriTech - Alta Performance<br>
+                        Rua Nilo Ferri, 25 - Castelo Branco<br>
+                        Cariacica - ES | CEP: 29140-878<br>
+                        Ref do Pedido: #${pedido._id.slice(-8)}
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+            </body>
+            </html>
+            `;
+
+            const win = window.open('', '_blank');
+            win.document.write(htmlEtiqueta);
+            win.document.close();
+        }
+
+        // --- SALVAR, EDITAR E EXCLUIR PRODUTOS ---
         async function salvarProduto(e) {
             e.preventDefault();
             const id = document.getElementById('produto-id').value;
